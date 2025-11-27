@@ -29,6 +29,9 @@
             "styles": [
               "src/styles/_theme-colors.scss",
               "src/styles.scss"
+            ],
+            "polyfills": [
+              "@angular/localize/init"
             ]
           },
           "configurations": {

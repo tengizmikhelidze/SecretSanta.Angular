@@ -4,12 +4,6 @@
   "newProjectRoot": "projects",
   "projects": {
     "secret-santa": {
-      "i18n": {
-        "sourceLocale": "en-US",
-        "locales": {
-          "ka-GE": "src/locale/messages.ka-GE.xlf"
-        }
-      },
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -23,7 +17,6 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "localize": ["ka-GE"],
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
@@ -39,10 +32,7 @@
             ],
             "stylePreprocessorOptions": {
               "includePaths": ["src/styles"]
-            },
-            "polyfills": [
-              "@angular/localize/init"
-            ]
+            }
           },
           "configurations": {
             "production": {

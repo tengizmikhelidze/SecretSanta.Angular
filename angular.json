@@ -37,6 +37,9 @@
               "src/styles/_theme-colors.scss",
               "src/styles.scss"
             ],
+            "stylePreprocessorOptions": {
+              "includePaths": ["src/styles"]
+            },
             "polyfills": [
               "@angular/localize/init"
             ]

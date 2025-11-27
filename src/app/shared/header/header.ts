@@ -1,8 +1,11 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
+import {MatIconButton} from '@angular/material/button';
 
 @Component({
   selector: 'app-header',
-  imports: [],
+  imports: [
+    MatIconButton
+  ],
   templateUrl: './header.html',
   styleUrl: './header.scss',
 })

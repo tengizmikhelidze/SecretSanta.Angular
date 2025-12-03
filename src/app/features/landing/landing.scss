@@ -3,7 +3,7 @@
 main {
   margin: 0 auto;
   max-width: var.$container-lg;
-  padding: 0 var.$spacing-md;
+  padding: var.$spacing-md;
   min-height: calc(100% - #{var.$header-height} - #{var.$footer-height});
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -15,6 +15,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Header } from '../../shared/header/header';
 import { Footer } from '../../shared/footer/footer';
 import { SecretSantaService } from '../../core/services/secret-santa.service';
+import { uniqueEmailInArrayValidator } from '../../core/validators/unique-email.validator';
 import { Subject, takeUntil, debounceTime } from 'rxjs';
 
 interface Participant {
@@ -76,7 +77,7 @@ export class Generator implements OnInit, OnDestroy {
     partyDate: [''],
     location: [''],
     maxAmount: [null as number | null],
-    participants: this.fb.array([], [Validators.minLength(4)]),
+    participants: this.fb.array([], [Validators.minLength(4), uniqueEmailInArrayValidator()]),
     personalMessage: ['', Validators.maxLength(500)],
     hostCanSeeAll: [false],
     termsAccepted: [false, Validators.requiredTrue]
@@ -204,7 +205,8 @@ export class Generator implements OnInit, OnDestroy {
         termsAccepted: data.termsAccepted || false
       });
 
-      this.validateUniqueEmails();
+      // Trigger validation
+      this.participantsArray.updateValueAndValidity();
 
       this.snackBar.open('✅ Form data restored successfully!', 'Close', {
         duration: 3000,
@@ -232,8 +234,8 @@ export class Generator implements OnInit, OnDestroy {
 
     this.participantsArray.push(participantForm);
 
-    // Revalidate unique emails
-    this.validateUniqueEmails();
+    // Trigger validation
+    this.participantsArray.updateValueAndValidity();
   }
 
   protected removeParticipant(index: number): void {
@@ -241,7 +243,9 @@ export class Generator implements OnInit, OnDestroy {
     if (this.participantsArray.length <= 4) return; // Minimum 4 participants
 
     this.participantsArray.removeAt(index);
-    this.validateUniqueEmails();
+
+    // Trigger validation
+    this.participantsArray.updateValueAndValidity();
   }
 
   protected onFileSelected(event: Event): void {
@@ -295,32 +299,8 @@ export class Generator implements OnInit, OnDestroy {
       this.addParticipant();
     }
 
-    this.validateUniqueEmails();
-  }
-
-  private validateUniqueEmails(): void {
-    const emails = this.participantsArray.controls
-      .map(control => control.get('email')?.value)
-      .filter(email => email);
-
-    const emailCounts = new Map<string, number>();
-    emails.forEach(email => {
-      emailCounts.set(email, (emailCounts.get(email) || 0) + 1);
-    });
-
-    // Set errors on duplicate emails
-    this.participantsArray.controls.forEach(control => {
-      const email = control.get('email')?.value;
-      const emailControl = control.get('email');
-
-      if (email && emailCounts.get(email)! > 1) {
-        emailControl?.setErrors({ ...emailControl.errors, duplicate: true });
-      } else if (emailControl?.hasError('duplicate')) {
-        const errors = { ...emailControl.errors };
-        delete errors['duplicate'];
-        emailControl.setErrors(Object.keys(errors).length ? errors : null);
-      }
-    });
+    // Trigger validation
+    this.participantsArray.updateValueAndValidity();
   }
 
   protected async onSubmit(): Promise<void> {
@@ -408,15 +388,44 @@ export class Generator implements OnInit, OnDestroy {
 
   private scrollToFirstError(): void {
     setTimeout(() => {
-      const firstErrorElement = document.querySelector('.mat-mdc-form-field-error, .ng-invalid.ng-touched');
+      // Try to find Material form field with error first
+      let firstErrorElement = document.querySelector('.mat-mdc-form-field.ng-invalid .mat-mdc-form-field-error');
+
+      // If not found, try to find any invalid and touched field
+      if (!firstErrorElement) {
+        firstErrorElement = document.querySelector('.mat-mdc-form-field.ng-invalid.ng-touched');
+      }
+
+      // If still not found, try checkbox errors
+      if (!firstErrorElement) {
+        firstErrorElement = document.querySelector('.mat-mdc-checkbox.ng-invalid.ng-touched');
+      }
+
+      // If still not found, look for any validation error message
+      if (!firstErrorElement) {
+        firstErrorElement = document.querySelector('.terms-error, .error-message');
+      }
 
       if (firstErrorElement) {
-        firstErrorElement.scrollIntoView({
+        // Get the parent form field or section
+        const scrollTarget = firstErrorElement.closest('.mat-mdc-form-field')
+          || firstErrorElement.closest('.checkbox-group')
+          || firstErrorElement.closest('.participant-row')
+          || firstErrorElement;
+
+        scrollTarget.scrollIntoView({
           behavior: 'smooth',
-          block: 'center'
+          block: 'center',
+          inline: 'nearest'
         });
+
+        // Also try to focus the input if possible
+        const input = scrollTarget.querySelector('input, textarea') as HTMLElement;
+        if (input && typeof input.focus === 'function') {
+          setTimeout(() => input.focus(), 300);
+        }
       }
-    }, 100);
+    }, 150);
   }
 
   protected triggerFileInput(): void {

@@ -4,44 +4,82 @@
 main {
   min-height: calc(100vh - #{var.$header-height} - #{var.$footer-height});
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: var.$spacing-2xl var.$spacing-md;
-  @include resp.tablet-up { padding: var.$spacing-3xl var.$spacing-xl; }
+  padding: var.$spacing-md;
+
+  @include resp.tablet-up { padding: var.$spacing-xl; }
+  @include resp.desktop { padding: var.$spacing-2xl var.$spacing-xl; }
 }
 
-.generator-container { max-width: var.$container-md; margin: 0 auto; }
+.generator-container { max-width: var.$container-lg; margin: 0 auto; }
 
 .page-header {
   text-align: center;
-  margin-bottom: var.$spacing-3xl;
-  h1 { font-size: var.$font-size-2xl; font-weight: 700; color: var(--mat-sys-primary); margin-bottom: var.$spacing-md; @include resp.tablet-up { font-size: var.$font-size-3xl; } }
-  p { color: #6b7280; font-size: var.$font-size-md; }
+  margin-bottom: var.$spacing-xl;
+
+  @include resp.tablet-up { margin-bottom: var.$spacing-2xl; }
+
+  h1 {
+    font-size: var.$font-size-xl;
+    font-weight: 700;
+    color: var(--mat-sys-primary);
+    margin-bottom: var.$spacing-sm;
+
+    @include resp.tablet-up { font-size: var.$font-size-2xl; margin-bottom: var.$spacing-md; }
+    @include resp.desktop { font-size: var.$font-size-3xl; }
+  }
+
+  p {
+    color: #6b7280;
+    font-size: var.$font-size-sm;
+    @include resp.tablet-up { font-size: var.$font-size-md; }
+  }
 }
 
-.party-form { display: flex; flex-direction: column; gap: var.$spacing-2xl; }
+.party-form {
+  display: flex;
+  flex-direction: column;
+  gap: var.$spacing-lg;
+
+  @include resp.tablet-up { gap: var.$spacing-xl; }
+  @include resp.desktop { gap: var.$spacing-2xl; }
+}
 
 .form-section {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
   background: #fffbff !important;
 
   mat-card-header {
-    margin-bottom: var.$spacing-lg;
-    mat-card-title { font-size: var.$font-size-xl !important; display: flex; align-items: center; gap: var.$spacing-sm; }
+    margin-bottom: var.$spacing-md;
+    @include resp.tablet-up { margin-bottom: var.$spacing-lg; }
+
+    mat-card-title {
+      font-size: var.$font-size-lg !important;
+      display: flex;
+      align-items: center;
+      gap: var.$spacing-xs;
+
+      @include resp.tablet-up { font-size: var.$font-size-xl !important; gap: var.$spacing-sm; }
+    }
   }
-  .section-icon { font-size: var.$font-size-2xl; }
+
+  .section-icon {
+    font-size: var.$font-size-xl;
+    @include resp.tablet-up { font-size: var.$font-size-2xl; }
+  }
 }
 
-// Participants card header - center title, buttons to end
 .participants-section {
   mat-card-header {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: var.$spacing-md;
+    align-items: flex-start;
+    gap: var.$spacing-sm;
 
     @include resp.tablet-up {
       flex-direction: row;
       justify-content: space-between;
       align-items: center;
+      gap: var.$spacing-md;
     }
 
     mat-card-title {
@@ -56,19 +94,32 @@ main {
 
 .section-actions {
   display: flex;
-  gap: var.$spacing-sm;
+  gap: var.$spacing-xs;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
+  width: 100%;
+  button {
+    border-radius: var.$border-radius-lg;
+    color: #1565c0;
+    width: 100%;
+  }
 
   @include resp.tablet-up {
+    gap: var.$spacing-sm;
     justify-content: flex-end;
+
+    width: auto;
+    button {
+      width: auto;
+    }
   }
 }
 
 .form-row {
   display: grid;
-  gap: var.$spacing-lg;
-  @include resp.tablet-up { grid-template-columns: repeat(2, 1fr); }
+  gap: var.$spacing-md;
+
+  @include resp.tablet-up { grid-template-columns: repeat(2, 1fr); gap: var.$spacing-lg; }
   @include resp.desktop { grid-template-columns: repeat(3, 1fr); }
 }
 
@@ -77,17 +128,22 @@ main {
 .participants-list {
   display: flex;
   flex-direction: column;
-  gap: var.$spacing-lg;
-  margin-bottom: var.$spacing-xl;
+  gap: var.$spacing-md;
+  margin-bottom: var.$spacing-lg;
+
+  @include resp.tablet-up { gap: var.$spacing-lg; margin-bottom: var.$spacing-xl; }
 }
 
 .participant-row {
   display: grid;
-  gap: var.$spacing-md;
-  padding: var.$spacing-lg;
+  gap: var.$spacing-sm;
+  padding: var.$spacing-md;
+  background: transparent;
   border-radius: var.$border-radius-lg;
   border: 2px solid #e3f2fd;
   align-items: flex-start;
+
+  @include resp.tablet-up { gap: var.$spacing-md; padding: var.$spacing-lg; }
 
   @include resp.mobile {
     grid-template-columns: 1fr;
@@ -102,15 +158,15 @@ main {
 
   .participant-badge {
     grid-area: badge;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
 
-    @include resp.tablet-up {
-      // Fixed width to align all inputs consistently
-      width: 80px;
+    @include resp.tablet-up { width: 80px;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: calc(100% - 20px);
-    }
+      height: calc(100% - 20px); }
   }
 
   .participant-field:nth-of-type(1) { grid-area: name; }
@@ -120,31 +176,34 @@ main {
     grid-area: remove;
     justify-self: end;
 
-    /* New requested styles to center the remove button */
+    width: 100%;
+    height: 48px;
     padding: 0;
     margin: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 56px;
+    background: #ffebee !important;
+    border: 2px solid #ef5350 !important;
+    border-radius: var.$border-radius-lg !important;
+    color: #c62828 !important;
+
+    @include resp.tablet-up {
+      width: auto;
+      height: 56px;
+      justify-self: end;
+      border-radius: 50% !important;
+      background: transparent !important;
+      border: none !important;
+      color: inherit !important;
+    }
+
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
   }
 }
 
 .participant-badge {
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  padding-top: 4px;
-
-  @include resp.tablet-up {
-    align-items: center;
-    justify-content: center;
-    padding-top: 0;
-  }
-
-  mat-chip {
-    font-weight: 600;
-  }
+  mat-chip { font-weight: 600; }
 
   .participant-number {
     background: #bbdefb;
@@ -163,79 +222,128 @@ main {
 .csv-hint {
   display: flex;
   align-items: center;
-  gap: var.$spacing-sm;
-  padding: var.$spacing-md;
+  gap: var.$spacing-xs;
+  padding: var.$spacing-sm;
   background: #e3f2fd;
   border-radius: var.$border-radius-lg;
   color: #1565c0;
-  margin-bottom: var.$spacing-lg;
+  margin-bottom: var.$spacing-md;
   border: 1px solid #90caf9;
-  mat-icon { color: #1976d2; }
+  font-size: var.$font-size-xs;
+
+  @include resp.tablet-up {
+    gap: var.$spacing-sm;
+    padding: var.$spacing-md;
+    margin-bottom: var.$spacing-lg;
+    font-size: var.$font-size-sm;
+  }
+
+  mat-icon {
+    color: #1976d2;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+
+    @include resp.tablet-up { font-size: 24px; width: 24px; height: 24px; }
+  }
 }
 
 .add-participant-btn {
   width: 100%;
-  height: 48px !important;
+  height: 44px !important;
   border-radius: 6px !important;
   background: #e3f2fd !important;
   color: #1565c0 !important;
   border: 2px solid #90caf9 !important;
   font-weight: 500 !important;
+  font-size: var.$font-size-sm !important;
 
-  &:hover:not(:disabled) {
-    background: #bbdefb !important;
-    border-color: #64b5f6 !important;
-  }
+  @include resp.tablet-up { height: 48px !important; font-size: var.$font-size-md !important; }
+
+  &:hover:not(:disabled) { background: #bbdefb !important; border-color: #64b5f6 !important; }
 
   mat-icon {
-    margin-right: var.$spacing-sm;
+    margin-right: var.$spacing-xs;
+    @include resp.tablet-up { margin-right: var.$spacing-sm; }
   }
 }
 
 .checkbox-group {
-  margin-bottom: var.$spacing-lg;
+  margin-bottom: var.$spacing-md;
+  @include resp.tablet-up { margin-bottom: var.$spacing-lg; }
 
   mat-checkbox {
     align-items: flex-start !important;
 
-    ::ng-deep .mdc-form-field {
-      align-items: flex-start !important;
-    }
-
-    ::ng-deep .mdc-checkbox {
-      margin-top: 2px;
-    }
+    ::ng-deep .mdc-form-field { align-items: flex-start !important; }
+    ::ng-deep .mdc-checkbox { margin-top: 2px; }
   }
 
   .checkbox-content {
     display: flex;
     flex-direction: column;
     gap: var.$spacing-xs;
-    strong { font-size: var.$font-size-sm; }
+
+    strong {
+      font-size: var.$font-size-xs;
+      @include resp.tablet-up { font-size: var.$font-size-sm; }
+    }
+
     .checkbox-description { color: #6b7280; font-size: var.$font-size-xs; line-height: 1.5; margin-top: var.$spacing-xs; }
   }
 }
 
-.terms-error { display: block; margin-top: var.$spacing-sm; color: #dc2626; font-size: var.$font-size-xs; }
+.terms-error {
+  display: block;
+  margin-top: var.$spacing-xs;
+  color: #dc2626;
+  font-size: var.$font-size-xs;
 
-.alert { padding: var.$spacing-lg !important; display: flex; align-items: center; gap: var.$spacing-md; }
+  @include resp.tablet-up { margin-top: var.$spacing-sm; }
+}
+
+.alert {
+  padding: var.$spacing-md !important;
+  display: flex;
+  align-items: center;
+  gap: var.$spacing-sm;
+  font-size: var.$font-size-xs;
+
+  @include resp.tablet-up { padding: var.$spacing-lg !important; gap: var.$spacing-md; font-size: var.$font-size-sm; }
+}
+
 .alert-error { background: #fee2e2 !important; border: 2px solid #fecaca; .alert-icon { color: #dc2626; } span { color: #991b1b; } }
 
-.form-actions { display: flex; justify-content: center; padding-top: var.$spacing-xl; }
+.form-actions {
+  display: flex;
+  justify-content: center;
+  padding-top: var.$spacing-lg;
+
+  @include resp.tablet-up { padding-top: var.$spacing-xl; }
+}
 
 .btn-create {
-  font-size: var.$font-size-lg !important;
-  padding: var.$spacing-lg var.$spacing-3xl !important;
+  font-size: var.$font-size-md !important;
+  padding: var.$spacing-md var.$spacing-xl !important;
   height: auto !important;
   line-height: normal !important;
-  .btn-spinner { display: inline-block; margin-right: var.$spacing-sm; }
+
+  @include resp.tablet-up { font-size: var.$font-size-lg !important; padding: var.$spacing-lg var.$spacing-2xl !important; }
+  @include resp.desktop { padding: var.$spacing-lg var.$spacing-3xl !important; }
+
+  .btn-spinner {
+    display: inline-block;
+    margin-right: var.$spacing-xs;
+    @include resp.tablet-up { margin-right: var.$spacing-sm; }
+  }
+
   mat-icon { margin: 0 var.$spacing-xs; }
 }
 
-// Fix textarea icon alignment
 ::ng-deep .full-width {
   .mat-mdc-form-field-icon-prefix {
     align-self: flex-start !important;
     padding-top: 16px;
   }
 }
+

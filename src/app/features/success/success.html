@@ -1,0 +1,135 @@
+<app-header></app-header>
+
+<main>
+  @if (loading()) {
+    <div class="loading">
+      <mat-icon>hourglass_empty</mat-icon>
+      <p>Loading party details...</p>
+    </div>
+  } @else if (partyDetails()) {
+    <div class="success-container">
+      <div class="success-header">
+        <div class="success-icon">
+          <mat-icon>celebration</mat-icon>
+        </div>
+        <h1>🎉 Party Created Successfully!</h1>
+        <p>Your Secret Santa party has been created. Invitations will be sent to all participants.</p>
+      </div>
+
+      <mat-card class="party-info-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>info</mat-icon>
+            Party Information
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">
+                <mat-icon>tag</mat-icon>
+                Party ID
+              </span>
+              <span class="info-value">{{ partyDetails()?.id }}</span>
+            </div>
+
+            @if (partyDetails()?.partyDate) {
+              <div class="info-item">
+                <span class="info-label">
+                  <mat-icon>event</mat-icon>
+                  Party Date
+                </span>
+                <span class="info-value">{{ formatDate(partyDetails()!.partyDate!) }}</span>
+              </div>
+            }
+
+            @if (partyDetails()?.location) {
+              <div class="info-item">
+                <span class="info-label">
+                  <mat-icon>place</mat-icon>
+                  Location
+                </span>
+                <span class="info-value">{{ partyDetails()?.location }}</span>
+              </div>
+            }
+
+            @if (partyDetails()?.maxAmount) {
+              <div class="info-item">
+                <span class="info-label">
+                  <mat-icon>attach_money</mat-icon>
+                  Max Spend
+                </span>
+                <span class="info-value">${{ partyDetails()?.maxAmount }}</span>
+              </div>
+            }
+
+            <div class="info-item">
+              <span class="info-label">
+                <mat-icon>people</mat-icon>
+                Participants
+              </span>
+              <span class="info-value">{{ partyDetails()?.participants?.length }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">
+                <mat-icon>schedule</mat-icon>
+                Created
+              </span>
+              <span class="info-value">{{ formatDate(partyDetails()!.createdAt) }}</span>
+            </div>
+          </div>
+
+          @if (partyDetails()?.personalMessage) {
+            <mat-divider></mat-divider>
+            <div class="message-section">
+              <h3>
+                <mat-icon>message</mat-icon>
+                Personal Message
+              </h3>
+              <p class="message-text">{{ partyDetails()?.personalMessage }}</p>
+            </div>
+          }
+
+          <mat-divider></mat-divider>
+
+          <div class="participants-section">
+            <h3>
+              <mat-icon>group</mat-icon>
+              Participants ({{ partyDetails()?.participants?.length || 0 }})
+            </h3>
+            <div class="participants-list">
+              @for (participant of partyDetails()?.participants; track participant.email) {
+                <div class="participant-chip">
+                  <mat-chip [highlighted]="participant.isHost" [color]="participant.isHost ? 'warn' : 'primary'">
+                    @if (participant.isHost) {
+                      <mat-icon matChipAvatar>star</mat-icon>
+                    } @else {
+                      <mat-icon matChipAvatar>person</mat-icon>
+                    }
+                    <span class="participant-name">{{ participant.name }}</span>
+                    <span class="participant-email">{{ participant.email }}</span>
+                  </mat-chip>
+                </div>
+              }
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <div class="actions">
+        <button mat-raised-button color="primary" (click)="createAnother()">
+          <mat-icon>add</mat-icon>
+          Create Another Party
+        </button>
+        <button mat-stroked-button (click)="goHome()">
+          <mat-icon>home</mat-icon>
+          Go to Home
+        </button>
+      </div>
+    </div>
+  }
+</main>
+
+<app-footer></app-footer>
+

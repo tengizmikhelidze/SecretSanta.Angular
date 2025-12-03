@@ -11,6 +11,10 @@ export const routes: Routes = [
       {
         path: "generator",
         loadComponent: () => import('./features/generator/generator').then(c => c.Generator)
+      },
+      {
+        path: "success/:id",
+        loadComponent: () => import('./features/success/success').then(c => c.Success)
       }
     ]
   }

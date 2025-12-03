@@ -1,5 +1,6 @@
-import { Component, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, computed, inject, ChangeDetectionStrategy, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,9 +10,12 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Header } from '../../shared/header/header';
 import { Footer } from '../../shared/footer/footer';
 import { SecretSantaService } from '../../core/services/secret-santa.service';
+import { Subject, takeUntil, debounceTime } from 'rxjs';
 
 interface Participant {
   name: string;
@@ -43,18 +47,30 @@ interface PartyFormData {
     MatCardModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatChipsModule
+    MatChipsModule,
+    MatSnackBarModule,
+    MatDialogModule
   ],
   templateUrl: './generator.html',
   styleUrl: './generator.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(window:beforeunload)': 'onBeforeUnload($event)'
+  }
 })
-export class Generator {
+export class Generator implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
+  private router = inject(Router);
+  private snackBar = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
   private secretSantaService = inject(SecretSantaService);
+  private destroy$ = new Subject<void>();
 
   protected readonly isSubmitting = signal(false);
   protected readonly submitError = signal<string | null>(null);
+  protected readonly hasUnsavedChanges = signal(false);
+  private readonly STORAGE_KEY = 'secretSantaFormData';
+  private readonly TIMESTAMP_KEY = 'secretSantaFormTimestamp';
 
   protected readonly partyForm = this.fb.group({
     partyDate: [''],
@@ -83,6 +99,128 @@ export class Generator {
     this.partyForm.statusChanges.subscribe(() => {
       this.isFormValid.set(this.partyForm.valid);
     });
+  }
+
+  ngOnInit(): void {
+    // Check for saved form data
+    this.checkForSavedData();
+
+    // Auto-save form data on changes
+    this.partyForm.valueChanges
+      .pipe(
+        takeUntil(this.destroy$),
+        debounceTime(1000)
+      )
+      .subscribe(() => {
+        this.saveFormData();
+        this.hasUnsavedChanges.set(true);
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.hasUnsavedChanges() && !this.isSubmitting()) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  }
+
+  private checkForSavedData(): void {
+    const savedData = localStorage.getItem(this.STORAGE_KEY);
+    const savedTimestamp = localStorage.getItem(this.TIMESTAMP_KEY);
+
+    if (savedData && savedTimestamp) {
+      const timestamp = new Date(savedTimestamp);
+      const hoursSinceLastSave = (Date.now() - timestamp.getTime()) / (1000 * 60 * 60);
+
+      // Only restore if saved within last 24 hours
+      if (hoursSinceLastSave < 24) {
+        const snackBarRef = this.snackBar.open(
+          '📋 Found unsaved data from your previous session. Would you like to restore it?',
+          'Restore',
+          {
+            duration: 10000,
+            horizontalPosition: 'center',
+            verticalPosition: 'top',
+            panelClass: ['info-snackbar']
+          }
+        );
+
+        snackBarRef.onAction().subscribe(() => {
+          this.restoreFormData(savedData);
+        });
+      } else {
+        // Clear old data
+        localStorage.removeItem(this.STORAGE_KEY);
+        localStorage.removeItem(this.TIMESTAMP_KEY);
+      }
+    }
+  }
+
+  private saveFormData(): void {
+    const formValue = this.partyForm.value;
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(formValue));
+    localStorage.setItem(this.TIMESTAMP_KEY, new Date().toISOString());
+  }
+
+  private restoreFormData(savedData: string): void {
+    try {
+      const data = JSON.parse(savedData);
+
+      // Clear existing participants
+      while (this.participantsArray.length > 0) {
+        this.participantsArray.removeAt(0);
+      }
+
+      // Restore participants
+      if (data.participants && Array.isArray(data.participants)) {
+        data.participants.forEach((participant: any) => {
+          const participantForm = this.fb.group({
+            name: [participant.name || '', Validators.required],
+            email: [participant.email || '', [Validators.required, Validators.email]],
+            isHost: [participant.isHost || false]
+          });
+          this.participantsArray.push(participantForm);
+        });
+      }
+
+      // Ensure minimum 4 participants
+      while (this.participantsArray.length < 4) {
+        this.addParticipant();
+      }
+
+      // Restore other form fields
+      this.partyForm.patchValue({
+        partyDate: data.partyDate || '',
+        location: data.location || '',
+        maxAmount: data.maxAmount || null,
+        personalMessage: data.personalMessage || '',
+        hostCanSeeAll: data.hostCanSeeAll || false,
+        termsAccepted: data.termsAccepted || false
+      });
+
+      this.validateUniqueEmails();
+
+      this.snackBar.open('✅ Form data restored successfully!', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+        panelClass: ['success-snackbar']
+      });
+    } catch (error) {
+      console.error('Error restoring form data:', error);
+      this.snackBar.open('⚠️ Failed to restore form data', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+        panelClass: ['error-snackbar']
+      });
+    }
   }
 
   protected addParticipant(isHost: boolean = false): void {
@@ -204,14 +342,33 @@ export class Generator {
 
       const result = await this.secretSantaService.createParty(formData);
 
-      // Navigate to success page or show success message
-      console.log('Party created successfully:', result);
+      // Clear saved form data on success
+      localStorage.removeItem('secretSantaFormData');
+      localStorage.removeItem('secretSantaFormTimestamp');
 
-      // TODO: Navigate to success/confirmation page
-      // this.router.navigate(['/party', result.id]);
+      // Show success snackbar
+      this.snackBar.open('🎉 Party created successfully!', 'Close', {
+        duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+        panelClass: ['success-snackbar']
+      });
+
+      // Navigate to success page
+      this.router.navigate(['/success', result.id]);
 
     } catch (error) {
-      this.submitError.set('Failed to create party. Please try again.');
+      const errorMessage = 'Failed to create party. Please try again.';
+      this.submitError.set(errorMessage);
+
+      // Show error snackbar
+      this.snackBar.open('❌ ' + errorMessage, 'Close', {
+        duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+        panelClass: ['error-snackbar']
+      });
+
       console.error('Error creating party:', error);
     } finally {
       this.isSubmitting.set(false);

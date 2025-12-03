@@ -1,6 +1,7 @@
 @use './styles/reset';
 @use '@angular/material' as mat;
 @use './styles/theme-colors' as customTheme;
+@use './styles/snackbar';
 
 html {
   @include mat.theme((

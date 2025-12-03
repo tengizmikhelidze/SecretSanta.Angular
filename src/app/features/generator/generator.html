@@ -1,0 +1,244 @@
+<app-header></app-header>
+
+<main>
+  <div class="generator-container">
+    <header class="page-header">
+      <h1>🎅 Create Your Secret Santa Party</h1>
+      <p>Fill in the details below to organize your gift exchange</p>
+    </header>
+
+    <form [formGroup]="partyForm" (ngSubmit)="onSubmit()" class="party-form">
+
+      <!-- Optional Party Details Section -->
+      <mat-card class="form-section">
+        <mat-card-header>
+          <mat-card-title>
+            <span class="section-icon">📅</span>
+            Party Details (Optional)
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Party Date</mat-label>
+              <input
+                matInput
+                type="date"
+                formControlName="partyDate">
+              <mat-icon matPrefix>event</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Location</mat-label>
+              <input
+                matInput
+                type="text"
+                formControlName="location"
+                placeholder="e.g., Office, Home, Restaurant">
+              <mat-icon matPrefix>place</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Max Spend Amount</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="maxAmount"
+                placeholder="e.g., 50"
+                min="0">
+              <mat-icon matPrefix>attach_money</mat-icon>
+              <span matSuffix>USD</span>
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Participants Section -->
+      <mat-card class="form-section participants-section">
+        <mat-card-header>
+          <mat-card-title>
+            <span class="section-icon">👥</span>
+            Participants (Minimum 4)
+          </mat-card-title>
+          <div class="section-actions">
+            <button
+              mat-stroked-button
+              type="button"
+              color="accent"
+              (click)="triggerFileInput()">
+              <mat-icon>upload_file</mat-icon>
+              Import CSV
+            </button>
+            <input
+              type="file"
+              id="csv-file-input"
+              accept=".csv"
+              (change)="onFileSelected($event)"
+              style="display: none;">
+          </div>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="csv-hint">
+            <mat-icon>info</mat-icon>
+            <span>CSV format: name,email (one per line)</span>
+          </div>
+
+          <div class="participants-list" formArrayName="participants">
+            @for (participant of participantsArray.controls; track $index) {
+              <div class="participant-row" [formGroupName]="$index">
+                <div class="participant-badge">
+                  @if ($index === 0) {
+                    <mat-chip highlighted color="warn">
+                      <mat-icon matChipAvatar>star</mat-icon>
+                      Host
+                    </mat-chip>
+                  } @else {
+                    <span class="participant-number">#{{ $index + 1 }}</span>
+                  }
+                </div>
+
+                <mat-form-field appearance="outline" class="participant-field">
+                  <mat-label>Name</mat-label>
+                  <input
+                    matInput
+                    formControlName="name"
+                    placeholder="Enter name"
+                    required>
+                  <mat-icon matPrefix>person</mat-icon>
+                  @if (participant.get('name')?.invalid && participant.get('name')?.touched) {
+                    <mat-error>Name is required</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="participant-field">
+                  <mat-label>Email</mat-label>
+                  <input
+                    matInput
+                    type="email"
+                    formControlName="email"
+                    placeholder="Enter email"
+                    required>
+                  <mat-icon matPrefix>email</mat-icon>
+                  @if (participant.get('email')?.hasError('required') && participant.get('email')?.touched) {
+                    <mat-error>Email is required</mat-error>
+                  } @else if (participant.get('email')?.hasError('email') && participant.get('email')?.touched) {
+                    <mat-error>Invalid email format</mat-error>
+                  } @else if (participant.get('email')?.hasError('duplicate') && participant.get('email')?.touched) {
+                    <mat-error>Email must be unique</mat-error>
+                  }
+                </mat-form-field>
+
+                <button
+                  mat-icon-button
+                  type="button"
+                  color="warn"
+                  [disabled]="!canRemoveParticipants()"
+                  (click)="removeParticipant($index)"
+                  [style]="{visibility: $index > 0 ? 'visible' : 'hidden'}"
+                  matTooltip="Remove participant">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+
+          <button
+            mat-raised-button
+            type="button"
+            class="add-participant-btn"
+            (click)="addParticipant()">
+            <mat-icon>person_add</mat-icon>
+            Add Participant
+          </button>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Personal Message Section -->
+      <mat-card class="form-section">
+        <mat-card-header>
+          <mat-card-title>
+            <span class="section-icon">💌</span>
+            Personal Message
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Message for All Participants (Optional)</mat-label>
+            <textarea
+              matInput
+              formControlName="personalMessage"
+              rows="5"
+              maxlength="500"
+              placeholder="Write a festive message that all participants will see on their personal page..."></textarea>
+            <mat-icon matPrefix>message</mat-icon>
+            <mat-hint align="end">{{ partyForm.get('personalMessage')?.value?.length || 0 }} / 500</mat-hint>
+          </mat-form-field>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Permissions Section -->
+      <mat-card class="form-section permissions-section">
+        <mat-card-header>
+          <mat-card-title>
+            <span class="section-icon">🔐</span>
+            Permissions & Terms
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="checkbox-group">
+            <mat-checkbox formControlName="hostCanSeeAll" color="primary">
+              <div class="checkbox-content">
+                <strong>Allow host to see all participant assignments</strong>
+                <p class="checkbox-description">The party host will be able to view who is giving gifts to whom</p>
+              </div>
+            </mat-checkbox>
+          </div>
+
+          <div class="checkbox-group">
+            <mat-checkbox formControlName="termsAccepted" color="primary" required>
+              <div class="checkbox-content">
+                <strong>I agree to use participant data responsibly *</strong>
+                <p class="checkbox-description">You confirm that you have permission to use the provided email addresses and names for this Secret Santa event</p>
+              </div>
+            </mat-checkbox>
+            @if (partyForm.get('termsAccepted')?.invalid && partyForm.get('termsAccepted')?.touched) {
+              <mat-error class="terms-error">You must agree to the terms to continue</mat-error>
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Error Message -->
+      @if (submitError()) {
+        <mat-card class="alert alert-error">
+          <mat-icon class="alert-icon">error</mat-icon>
+          <span>{{ submitError() }}</span>
+        </mat-card>
+      }
+
+      <!-- Submit Button -->
+      <div class="form-actions">
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          class="btn-create"
+          [disabled]="!isFormValid() || isSubmitting()">
+          @if (isSubmitting()) {
+            <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
+            <span>Creating Party...</span>
+          } @else {
+            <ng-container>
+              <mat-icon>celebration</mat-icon>
+              <span>Create Secret Santa Party</span>
+              <mat-icon iconPositionEnd>card_giftcard</mat-icon>
+            </ng-container>
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<app-footer></app-footer>
+

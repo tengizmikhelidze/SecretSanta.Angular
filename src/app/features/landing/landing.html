@@ -1,50 +1,51 @@
 <app-header></app-header>
 <main>
 
-  <aside class="side side__articles">
+  <div class="content">
+    <aside class="side side__articles">
 
-    <article>
-      <h1>
-        What is Secret Santa?
-      </h1>
+      <article>
+        <h1>
+          What is Secret Santa?
+        </h1>
 
-      <p>
-        It's a <strong>free</strong> online Secret Santa gift <strong>exchange organizer / Kris Kringle generator!</strong> Organize a Secret Santa party
-        with friends, family or even co-workers. After receiving the Secret Santa mail you can add your own wishlist,
-        which will be delivered to your Secret Santa.
-        <br>
-        <br>
-        Each year around <strong>Christmas</strong> time people all over the world exchange gifts. To keep things interesting though, you
-        can randomly assign persons to each other to give a <strong>present</strong> to one another
-      </p>
-    </article>
+        <p>
+          It's a <strong>free</strong> online Secret Santa gift <strong>exchange organizer / Kris Kringle generator!</strong> Organize a Secret Santa party
+          with friends, family or even co-workers. After receiving the Secret Santa mail you can add your own wishlist,
+          which will be delivered to your Secret Santa.
+          <br>
+          <br>
+          Each year around <strong>Christmas</strong> time people all over the world exchange gifts. To keep things interesting though, you
+          can randomly assign persons to each other to give a <strong>present</strong> to one another
+        </p>
+      </article>
 
-    <article>
-      <h1>
-        How does it work?
-      </h1>
+      <article>
+        <h1>
+          How does it work?
+        </h1>
 
-      <p>
-        Create a party <a><strong>on the homepage.</strong></a> You need at least 3 participants, the first participant being the list
-        administrator. The list administrator will receive a confirmation link by e-mail.
-        <br>
-        <br>
-        Once validated, your Secret Santa list will be scrambled and all users will receive your message along with the
-        name of their Secret Santa gift buddy. We demand a confirmation to prevent bots or trolls from ruining your
-        Secret Santa party. The validation e-mail will provide a link to the <strong>Secret Santa</strong> event manager.
-      </p>
-    </article>
+        <p>
+          Create a party <a><strong>on the homepage.</strong></a> You need at least 3 participants, the first participant being the list
+          administrator. The list administrator will receive a confirmation link by e-mail.
+          <br>
+          <br>
+          Once validated, your Secret Santa list will be scrambled and all users will receive your message along with the
+          name of their Secret Santa gift buddy. We demand a confirmation to prevent bots or trolls from ruining your
+          Secret Santa party. The validation e-mail will provide a link to the <strong>Secret Santa</strong> event manager.
+        </p>
+      </article>
 
-  </aside>
+    </aside>
 
-  <aside class="side side__get-started">
-    <button>
-      <div data-decoration-tree>🎄</div>
-      <div data-decoration-gift>🎁</div>
-      <div data-decoration-star>⭐</div>
-      <div data-decoration-bell>🔔</div>
+    <aside class="side side__get-started">
+      <button (click)="navigateToGenerator()">
+        <div data-decoration-tree>🎄</div>
+        <div data-decoration-gift>🎁</div>
+        <div data-decoration-star>⭐</div>
+        <div data-decoration-bell>🔔</div>
 
-      <span>
+        <span>
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
              class="lucide lucide-gift" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"></rect><path
@@ -52,17 +53,18 @@
           d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"></path></svg>
       </span>
 
-      <span>Get Started</span>
+        <span>Get Started</span>
 
-      <span>
+        <span>
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
              class="lucide lucide-sparkles" aria-hidden="true"><path
           d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path
           d="M20 2v4"></path><path d="M22 4h-4"></path><circle cx="4" cy="20" r="2"></circle></svg>
       </span>
-    </button>
-  </aside>
+      </button>
+    </aside>
+  </div>
 
 </main>
 <app-footer></app-footer>

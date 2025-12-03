@@ -6,7 +6,11 @@ export const routes: Routes = [
     children: [
       {
         path: "",
-        loadComponent: () => import('./features/landing/landing').then(c=> c.Landing)
+        loadComponent: () => import('./features/landing/landing').then(c => c.Landing)
+      },
+      {
+        path: "generator",
+        loadComponent: () => import('./features/generator/generator').then(c => c.Generator)
       }
     ]
   }

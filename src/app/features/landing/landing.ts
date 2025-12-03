@@ -1,6 +1,7 @@
-import {Component} from '@angular/core';
-import {Header} from '../../shared/header/header';
-import {Footer} from '../../shared/footer/footer';
+import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { Header } from '../../shared/header/header';
+import { Footer } from '../../shared/footer/footer';
 
 @Component({
   selector: 'app-landing',
@@ -12,5 +13,9 @@ import {Footer} from '../../shared/footer/footer';
   styleUrl: './landing.scss',
 })
 export class Landing {
+  private router = inject(Router);
 
+  protected navigateToGenerator(): void {
+    this.router.navigate(['/generator']);
+  }
 }

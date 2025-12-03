@@ -2,21 +2,26 @@
 @use "responsive" as resp;
 
 main {
-  margin: 0 auto;
-  max-width: var.$container-lg;
-  padding: var.$spacing-xl;
+  width: 100%;
   min-height: calc(100% - #{var.$header-height} - #{var.$footer-height});
-  display: flex;
-  flex-direction: column;
-  gap: var.$spacing-2xl;
-  justify-content: center;
-  align-items: stretch;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 
-  @include resp.desktop {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: center;
-    gap: var.$spacing-xl;
+  .content {
+    max-width: var.$container-lg;
+    margin: 0 auto;
+    padding: var.$spacing-xl;
+    display: flex;
+    flex-direction: column;
+    gap: var.$spacing-2xl;
+    justify-content: center;
+    align-items: stretch;
+
+    @include resp.desktop {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: var.$spacing-xl;
+    }
   }
 }
 

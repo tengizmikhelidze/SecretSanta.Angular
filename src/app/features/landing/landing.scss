@@ -1,99 +1,206 @@
 @use "variables" as var;
+@use "responsive" as resp;
 
 main {
   margin: 0 auto;
   max-width: var.$container-lg;
-  padding: var.$spacing-md;
+  padding: var.$spacing-xl;
   min-height: calc(100% - #{var.$header-height} - #{var.$footer-height});
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: var.$spacing-2xl;
+  justify-content: center;
+  align-items: stretch;
+
+  @include resp.desktop {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: var.$spacing-xl;
+  }
 }
 
 aside {
   &.side__articles {
     display: flex;
     flex-direction: column;
-    gap: #{var.$spacing-xl};
+    gap: var.$spacing-xl;
+    order: 2;
+
+    @include resp.desktop {
+      order: 1;
+    }
 
     article {
       display: flex;
       flex-direction: column;
       gap: var.$spacing-md;
+
       h1 {
         color: oklch(.21 .034 264.665);
         font-weight: 400;
+        font-size: var.$font-size-xl;
+
+        @include resp.tablet-up {
+          font-size: var.$font-size-2xl;
+        }
+
+        @include resp.desktop {
+          font-size: var.$font-size-3xl;
+        }
       }
 
       p {
         color: oklch(.373 .034 259.733);
+        font-size: var.$font-size-sm;
+        line-height: 1.6;
+
+        @include resp.tablet-up {
+          font-size: var.$font-size-md;
+        }
+
+        @include resp.desktop {
+          font-size: var.$font-size-lg;
+        }
       }
     }
   }
 
   &.side__get-started {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
+    order: 1;
+
+    @include resp.desktop {
+      justify-content: flex-end;
+      order: 2;
+    }
 
     button {
       position: relative;
-      padding: var.$spacing-xl var.$spacing-3xl;
+      padding: var.$spacing-lg var.$spacing-xl;
       background-color: var(--mat-sys-primary);
       border-radius: var.$border-radius-xl;
+      border: none;
+      cursor: pointer;
+      overflow: visible;
 
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: var.$spacing-md;
-      font-size: var.$font-size-2xl;
+      gap: var.$spacing-sm;
+      font-size: var.$font-size-lg;
       font-weight: 500;
 
       color: #fff;
       transition: ease-in 0.1s;
 
+      @include resp.tablet-up {
+        padding: var.$spacing-xl var.$spacing-2xl;
+        gap: var.$spacing-md;
+        font-size: var.$font-size-xl;
+      }
+
+      @include resp.desktop {
+        padding: var.$spacing-xl var.$spacing-3xl;
+        font-size: var.$font-size-2xl;
+      }
+
       &:hover {
         scale: 1.02;
+      }
+
+      &:active {
+        scale: 0.98;
       }
     }
   }
 }
 
 [data-decoration-tree] {
-  font-size: var.$font-size-6xl;
+  font-size: var.$font-size-4xl;
   position: absolute;
-  top: -16px;
-  left: -20px;
+  top: -12px;
+  left: -16px;
 
   animation: christmass-tree 3s ease-in-out infinite;
+
+  @include resp.tablet-up {
+    font-size: var.$font-size-5xl;
+    top: -14px;
+    left: -18px;
+  }
+
+  @include resp.desktop {
+    font-size: var.$font-size-6xl;
+    top: -16px;
+    left: -20px;
+  }
 }
 
 [data-decoration-gift] {
-  font-size: var.$font-size-6xl;
+  font-size: var.$font-size-4xl;
   position: absolute;
-  top: -16px;
-  right: -20px;
+  top: -12px;
+  right: -16px;
   z-index: -1;
 
   animation: christmass-gift 3s ease-in-out infinite;
+
+  @include resp.tablet-up {
+    font-size: var.$font-size-5xl;
+    top: -14px;
+    right: -18px;
+  }
+
+  @include resp.desktop {
+    font-size: var.$font-size-6xl;
+    top: -16px;
+    right: -20px;
+  }
 }
 
 [data-decoration-star] {
-  font-size: var.$font-size-6xl;
+  font-size: var.$font-size-4xl;
   position: absolute;
-  bottom: -16px;
-  left: -20px;
+  bottom: -12px;
+  left: -16px;
   z-index: -1;
 
   animation: rotation 5s linear infinite;
+
+  @include resp.tablet-up {
+    font-size: var.$font-size-5xl;
+    bottom: -14px;
+    left: -18px;
+  }
+
+  @include resp.desktop {
+    font-size: var.$font-size-6xl;
+    bottom: -16px;
+    left: -20px;
+  }
 }
 
 [data-decoration-bell] {
-  font-size: var.$font-size-6xl;
+  font-size: var.$font-size-4xl;
   position: absolute;
-  bottom: -16px;
-  right: -20px;
+  bottom: -12px;
+  right: -16px;
 
   animation: christmass-bell 3s ease-in-out infinite;
+
+  @include resp.tablet-up {
+    font-size: var.$font-size-5xl;
+    bottom: -14px;
+    right: -18px;
+  }
+
+  @include resp.desktop {
+    font-size: var.$font-size-6xl;
+    bottom: -16px;
+    right: -20px;
+  }
 }
 
 @keyframes rotation {

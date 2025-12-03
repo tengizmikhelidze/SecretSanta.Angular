@@ -1,0 +1,225 @@
+// Responsive Breakpoints
+// These values match the breakpoints defined in _variables.scss
+$breakpoint-sm: 640px;   // Small devices (tablets)
+$breakpoint-md: 768px;   // Medium devices (small laptops)
+$breakpoint-lg: 1024px;  // Large devices (desktops)
+$breakpoint-xl: 1280px;  // Extra large devices (large desktops)
+$breakpoint-2xl: 1536px; // 2X Extra large devices
+
+// Breakpoint Mixins
+// Usage: @include mobile { ... }
+
+// Mobile only (< 640px)
+@mixin mobile {
+  @media (max-width: #{$breakpoint-sm - 1px}) {
+    @content;
+  }
+}
+
+// Tablet only (640px - 767px)
+@mixin tablet {
+  @media (min-width: #{$breakpoint-sm}) and (max-width: #{$breakpoint-md - 1px}) {
+    @content;
+  }
+}
+
+// Tablet and up (>= 640px)
+@mixin tablet-up {
+  @media (min-width: #{$breakpoint-sm}) {
+    @content;
+  }
+}
+
+// Desktop and up (>= 768px)
+@mixin desktop {
+  @media (min-width: #{$breakpoint-md}) {
+    @content;
+  }
+}
+
+// Large desktop and up (>= 1024px)
+@mixin desktop-lg {
+  @media (min-width: #{$breakpoint-lg}) {
+    @content;
+  }
+}
+
+// Extra large desktop and up (>= 1280px)
+@mixin desktop-xl {
+  @media (min-width: #{$breakpoint-xl}) {
+    @content;
+  }
+}
+
+// 2X Extra large desktop and up (>= 1536px)
+@mixin desktop-2xl {
+  @media (min-width: #{$breakpoint-2xl}) {
+    @content;
+  }
+}
+
+// Custom breakpoint
+// Usage: @include breakpoint(900px) { ... }
+@mixin breakpoint($size) {
+  @media (min-width: #{$size}) {
+    @content;
+  }
+}
+
+// Between two breakpoints
+// Usage: @include between(640px, 1024px) { ... }
+@mixin between($min, $max) {
+  @media (min-width: #{$min}) and (max-width: #{$max - 1px}) {
+    @content;
+  }
+}
+
+// Responsive Utility Mixins
+
+// Hide on mobile
+@mixin hide-mobile {
+  @include mobile {
+    display: none !important;
+  }
+}
+
+// Hide on tablet
+@mixin hide-tablet {
+  @include tablet {
+    display: none !important;
+  }
+}
+
+// Hide on desktop
+@mixin hide-desktop {
+  @include desktop {
+    display: none !important;
+  }
+}
+
+// Show only on mobile
+@mixin show-mobile-only {
+  display: none !important;
+
+  @include mobile {
+    display: block !important;
+  }
+}
+
+// Show only on tablet
+@mixin show-tablet-only {
+  display: none !important;
+
+  @include tablet {
+    display: block !important;
+  }
+}
+
+// Show only on desktop
+@mixin show-desktop-only {
+  display: none !important;
+
+  @include desktop {
+    display: block !important;
+  }
+}
+
+// Responsive Container
+// Adds responsive padding to containers
+@mixin responsive-container {
+  padding-left: 1rem;
+  padding-right: 1rem;
+
+  @include tablet-up {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  @include desktop {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  @include desktop-xl {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+}
+
+// Responsive Typography
+// Fluid font size between min and max
+@mixin fluid-font($min-size, $max-size, $min-vw: 320px, $max-vw: 1200px) {
+  font-size: $min-size;
+
+  @media (min-width: #{$min-vw}) {
+    font-size: calc(#{$min-size} + (#{strip-unit($max-size)} - #{strip-unit($min-size)}) * ((100vw - #{$min-vw}) / (#{strip-unit($max-vw)} - #{strip-unit($min-vw)})));
+  }
+
+  @media (min-width: #{$max-vw}) {
+    font-size: $max-size;
+  }
+}
+
+// Helper function to strip units
+@function strip-unit($number) {
+  @if type-of($number) == 'number' and not unitless($number) {
+    @return $number / ($number * 0 + 1);
+  }
+
+  @return $number;
+}
+
+// Responsive Grid
+// Creates a responsive grid with auto-fit columns
+@mixin responsive-grid($min-column-width: 250px, $gap: 1rem) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax($min-column-width, 1fr));
+  gap: $gap;
+}
+
+// Responsive Flex
+// Stack items on mobile, row on desktop
+@mixin responsive-flex($mobile-direction: column, $desktop-direction: row, $gap: 1rem) {
+  display: flex;
+  flex-direction: $mobile-direction;
+  gap: $gap;
+
+  @include desktop {
+    flex-direction: $desktop-direction;
+  }
+}
+
+// Aspect Ratio
+// Maintains aspect ratio (useful for responsive images/videos)
+@mixin aspect-ratio($width: 16, $height: 9) {
+  position: relative;
+
+  &::before {
+    content: '';
+    display: block;
+    padding-bottom: calc(($height / $width) * 100%);
+  }
+
+  > * {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// Responsive Spacing
+// Adds responsive padding/margin
+@mixin responsive-spacing($property: padding, $mobile: 1rem, $tablet: 1.5rem, $desktop: 2rem) {
+  #{$property}: $mobile;
+
+  @include tablet-up {
+    #{$property}: $tablet;
+  }
+
+  @include desktop {
+    #{$property}: $desktop;
+  }
+}
+

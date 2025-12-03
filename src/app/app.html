@@ -1,1 +1,15 @@
+<div class="snowflakes-container">
+  @for (snowflake of snowflakes(); track snowflake.id) {
+    <div
+      class="snowflake"
+      [style.left.%]="snowflake.left"
+      [style.animation-duration.s]="snowflake.animationDuration"
+      [style.animation-delay.s]="snowflake.animationDelay"
+      [style.font-size.rem]="snowflake.size"
+      [style.opacity]="snowflake.opacity">
+      ❄
+    </div>
+  }
+</div>
+
 <router-outlet />

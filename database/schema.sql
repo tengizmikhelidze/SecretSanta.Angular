@@ -9,20 +9,54 @@ CREATE DATABASE IF NOT EXISTS secret_santa
 USE secret_santa;
 
 -- ============================================
+-- Table: users
+-- Stores registered user accounts
+-- ============================================
+CREATE TABLE users (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NULL,
+  google_id VARCHAR(255) NULL UNIQUE,
+  full_name VARCHAR(255) NULL,
+  avatar_url VARCHAR(500) NULL,
+  is_email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+  email_verification_token VARCHAR(64) NULL UNIQUE,
+  email_verification_expires_at TIMESTAMP NULL,
+  password_reset_token VARCHAR(64) NULL UNIQUE,
+  password_reset_expires_at TIMESTAMP NULL,
+  last_login_at TIMESTAMP NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  INDEX idx_email (email),
+  INDEX idx_google_id (google_id),
+  INDEX idx_email_verification_token (email_verification_token),
+  INDEX idx_password_reset_token (password_reset_token)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
 -- Table: parties
 -- Stores main party information
 -- ============================================
 CREATE TABLE parties (
   id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  user_id BIGINT UNSIGNED NULL,
   status ENUM('created', 'pending', 'active', 'completed', 'cancelled') NOT NULL DEFAULT 'created',
   party_date DATE NULL,
   location VARCHAR(255) NULL,
   max_amount DECIMAL(10, 2) NULL,
   personal_message TEXT NULL,
   host_can_see_all BOOLEAN NOT NULL DEFAULT FALSE,
+  host_email VARCHAR(255) NOT NULL,
+  access_token VARCHAR(64) NOT NULL UNIQUE,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+
+  INDEX idx_user_id (user_id),
+  INDEX idx_host_email (host_email),
+  INDEX idx_access_token (access_token),
   INDEX idx_status (status),
   INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -34,22 +68,29 @@ CREATE TABLE parties (
 CREATE TABLE participants (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   party_id CHAR(36) NOT NULL,
+  user_id BIGINT UNSIGNED NULL,
   name VARCHAR(255) NOT NULL,
   email VARCHAR(255) NOT NULL,
   is_host BOOLEAN NOT NULL DEFAULT FALSE,
   assigned_to BIGINT UNSIGNED NULL,
+  access_token VARCHAR(64) NOT NULL UNIQUE,
   wishlist TEXT NULL,
+  wishlist_description TEXT NULL,
   notification_sent BOOLEAN NOT NULL DEFAULT FALSE,
   notification_sent_at TIMESTAMP NULL,
+  last_viewed_at TIMESTAMP NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
   FOREIGN KEY (party_id) REFERENCES parties(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
   FOREIGN KEY (assigned_to) REFERENCES participants(id) ON DELETE SET NULL,
 
   INDEX idx_party_id (party_id),
+  INDEX idx_user_id (user_id),
   INDEX idx_email (email),
   INDEX idx_is_host (is_host),
+  INDEX idx_access_token (access_token),
   UNIQUE INDEX idx_party_email (party_id, email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

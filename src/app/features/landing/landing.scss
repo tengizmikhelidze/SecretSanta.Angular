@@ -1,0 +1,139 @@
+@use "variables" as var;
+
+main {
+  margin: 0 auto;
+  max-width: var.$container-lg;
+  padding: 0 var.$spacing-md;
+  min-height: calc(100% - #{var.$header-height} - #{var.$footer-height});
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+}
+
+aside {
+  &.side__articles {
+    display: flex;
+    flex-direction: column;
+    gap: #{var.$spacing-xl};
+
+    article {
+      display: flex;
+      flex-direction: column;
+      gap: var.$spacing-md;
+      h1 {
+        color: oklch(.21 .034 264.665);
+        font-weight: 400;
+      }
+
+      p {
+        color: oklch(.373 .034 259.733);
+      }
+    }
+  }
+
+  &.side__get-started {
+    display: flex;
+    justify-content: flex-end;
+
+    button {
+      position: relative;
+      padding: var.$spacing-xl var.$spacing-3xl;
+      background-color: var(--mat-sys-primary);
+      border-radius: var.$border-radius-xl;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var.$spacing-md;
+      font-size: var.$font-size-2xl;
+      font-weight: 500;
+
+      color: #fff;
+      transition: ease-in 0.1s;
+
+      &:hover {
+        scale: 1.02;
+      }
+    }
+  }
+}
+
+[data-decoration-tree] {
+  font-size: var.$font-size-6xl;
+  position: absolute;
+  top: -16px;
+  left: -20px;
+
+  animation: christmass-tree 3s ease-in-out infinite;
+}
+
+[data-decoration-gift] {
+  font-size: var.$font-size-6xl;
+  position: absolute;
+  top: -16px;
+  right: -20px;
+  z-index: -1;
+
+  animation: christmass-gift 3s ease-in-out infinite;
+}
+
+[data-decoration-star] {
+  font-size: var.$font-size-6xl;
+  position: absolute;
+  bottom: -16px;
+  left: -20px;
+  z-index: -1;
+
+  animation: rotation 5s linear infinite;
+}
+
+[data-decoration-bell] {
+  font-size: var.$font-size-6xl;
+  position: absolute;
+  bottom: -16px;
+  right: -20px;
+
+  animation: christmass-bell 3s ease-in-out infinite;
+}
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes christmass-gift {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes christmass-tree {
+  0%, 100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(-20deg);
+  }
+  75% {
+    transform: rotate(20deg);
+  }
+}
+
+@keyframes christmass-bell {
+  0%, 100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(15deg);
+  }
+  75% {
+    transform: rotate(-15deg);
+  }
+}

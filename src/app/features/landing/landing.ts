@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 import {Header} from '../../shared/header/header';
 import {Footer} from '../../shared/footer/footer';
 

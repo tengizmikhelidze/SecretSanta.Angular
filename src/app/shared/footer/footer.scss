@@ -1,0 +1,21 @@
+@use "variables" as var;
+
+footer {
+  width: 100%;
+  height:  80px;
+
+  padding: 0 var.$spacing-md;
+
+  color: oklch(.446 .03 256.802);
+  border-top: 1px solid #e5e7eb;
+}
+
+.content {
+  height: 100%;
+  margin: 0 auto;
+  max-width: var.$container-lg;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}

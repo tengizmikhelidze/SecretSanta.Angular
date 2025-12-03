@@ -146,7 +146,7 @@ export class Generator implements OnInit, OnDestroy {
           {
             duration: 10000,
             horizontalPosition: 'center',
-            verticalPosition: 'top',
+            verticalPosition: 'bottom',
             panelClass: ['info-snackbar']
           }
         );
@@ -209,7 +209,7 @@ export class Generator implements OnInit, OnDestroy {
       this.snackBar.open('✅ Form data restored successfully!', 'Close', {
         duration: 3000,
         horizontalPosition: 'center',
-        verticalPosition: 'top',
+        verticalPosition: 'bottom',
         panelClass: ['success-snackbar']
       });
     } catch (error) {
@@ -217,7 +217,7 @@ export class Generator implements OnInit, OnDestroy {
       this.snackBar.open('⚠️ Failed to restore form data', 'Close', {
         duration: 3000,
         horizontalPosition: 'center',
-        verticalPosition: 'top',
+        verticalPosition: 'bottom',
         panelClass: ['error-snackbar']
       });
     }
@@ -324,7 +324,25 @@ export class Generator implements OnInit, OnDestroy {
   }
 
   protected async onSubmit(): Promise<void> {
-    if (this.partyForm.invalid || this.isSubmitting()) return;
+    // Mark all fields as touched to show validation errors
+    this.markFormGroupTouched(this.partyForm);
+
+    if (this.partyForm.invalid) {
+      // Scroll to first error
+      this.scrollToFirstError();
+
+      // Show error snackbar
+      this.snackBar.open('❌ Please fix all validation errors before submitting', 'Close', {
+        duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['error-snackbar']
+      });
+
+      return;
+    }
+
+    if (this.isSubmitting()) return;
 
     this.isSubmitting.set(true);
     this.submitError.set(null);
@@ -350,7 +368,7 @@ export class Generator implements OnInit, OnDestroy {
       this.snackBar.open('🎉 Party created successfully!', 'Close', {
         duration: 5000,
         horizontalPosition: 'center',
-        verticalPosition: 'top',
+        verticalPosition: 'bottom',
         panelClass: ['success-snackbar']
       });
 
@@ -365,7 +383,7 @@ export class Generator implements OnInit, OnDestroy {
       this.snackBar.open('❌ ' + errorMessage, 'Close', {
         duration: 5000,
         horizontalPosition: 'center',
-        verticalPosition: 'top',
+        verticalPosition: 'bottom',
         panelClass: ['error-snackbar']
       });
 
@@ -373,6 +391,32 @@ export class Generator implements OnInit, OnDestroy {
     } finally {
       this.isSubmitting.set(false);
     }
+  }
+
+  private markFormGroupTouched(formGroup: any): void {
+    Object.keys(formGroup.controls).forEach(key => {
+      const control = formGroup.get(key);
+      control.markAsTouched();
+
+      if (control instanceof FormArray) {
+        control.controls.forEach((arrayControl: any) => {
+          this.markFormGroupTouched(arrayControl);
+        });
+      }
+    });
+  }
+
+  private scrollToFirstError(): void {
+    setTimeout(() => {
+      const firstErrorElement = document.querySelector('.mat-mdc-form-field-error, .ng-invalid.ng-touched');
+
+      if (firstErrorElement) {
+        firstErrorElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
+    }, 100);
   }
 
   protected triggerFileInput(): void {

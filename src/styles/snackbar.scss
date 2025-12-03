@@ -10,10 +10,14 @@
   .mat-mdc-button {
     color: white !important;
   }
+
+  .mdc-snackbar__surface {
+    background-color: #4caf50 !important;
+  }
 }
 
 .error-snackbar {
-  background-color: #f44336 !important;
+  background-color: #b71f29 !important;
   color: white !important;
 
   .mat-mdc-snack-bar-label {
@@ -22,6 +26,10 @@
 
   .mat-mdc-button {
     color: white !important;
+  }
+
+  .mdc-snackbar__surface {
+    background-color: #b71f29 !important;
   }
 }
 
@@ -36,6 +44,10 @@
   .mat-mdc-button {
     color: white !important;
     font-weight: 600 !important;
+  }
+
+  .mdc-snackbar__surface {
+    background-color: #2196f3 !important;
   }
 }
 

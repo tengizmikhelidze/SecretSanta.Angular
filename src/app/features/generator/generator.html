@@ -223,7 +223,7 @@
           color="primary"
           type="submit"
           class="btn-create"
-          [disabled]="!isFormValid() || isSubmitting()">
+          [disabled]="isSubmitting()">
           @if (isSubmitting()) {
             <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
             <span>Creating Party...</span>

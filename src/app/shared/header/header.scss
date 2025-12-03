@@ -122,6 +122,90 @@ p { margin: 0; font-size: 0.875rem; color: #4b5563; }
   &:focus-visible { outline: 2px solid var(--mat-sys-primary, #8b5cf6); outline-offset: 2px; }
 }
 
+// Auth buttons styling
+.login-btn {
+  display: flex;
+  align-items: center;
+  gap: var.$spacing-xs;
+  height: 40px !important;
+  padding: 0 var.$spacing-lg !important;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  span {
+    display: none;
+
+    @media (min-width: 640px) {
+      display: inline;
+    }
+  }
+}
+
+.account-btn {
+  color: var(--mat-sys-primary);
+
+  mat-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+  }
+}
+
+// Account menu styling
+::ng-deep .mat-mdc-menu-panel {
+  min-width: 250px !important;
+
+  .menu-header {
+    display: flex;
+    align-items: center;
+    gap: var.$spacing-md;
+    padding: var.$spacing-md var.$spacing-lg;
+    border-bottom: 1px solid #e5e7eb;
+
+    mat-icon {
+      font-size: 40px;
+      width: 40px;
+      height: 40px;
+      color: var(--mat-sys-primary);
+    }
+
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      gap: var.$spacing-xs;
+
+      strong {
+        font-size: 14px;
+        color: #111827;
+        font-weight: 600;
+      }
+
+      span {
+        font-size: 12px;
+        color: #6b7280;
+        word-break: break-word;
+      }
+    }
+  }
+
+  mat-divider {
+    margin: var.$spacing-xs 0;
+  }
+
+  .mat-mdc-menu-item {
+    min-height: 44px;
+
+    mat-icon {
+      margin-right: var.$spacing-sm;
+      color: #6b7280;
+    }
+  }
+}
+
 [data-login] {
   display: flex;
   align-items: center;

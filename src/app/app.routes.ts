@@ -15,6 +15,10 @@ export const routes: Routes = [
       {
         path: "success/:id",
         loadComponent: () => import('./features/success/success').then(c => c.Success)
+      },
+      {
+        path: "account",
+        loadComponent: () => import('./features/account/account').then(c => c.Account)
       }
     ]
   }

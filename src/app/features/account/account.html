@@ -1,0 +1,211 @@
+<app-header></app-header>
+
+<main>
+  <div class="account-container">
+    <div class="account-header">
+      <div class="user-info">
+        @if (user()?.avatarUrl) {
+          <img [src]="user()!.avatarUrl" alt="Avatar" class="avatar-img">
+        } @else {
+          <mat-icon class="avatar-icon">account_circle</mat-icon>
+        }
+        <div class="user-details">
+          <h1>{{ user()?.fullName || user()?.email }}</h1>
+          <p class="email">{{ user()?.email }}</p>
+          @if (!user()?.isEmailVerified) {
+            <span class="verification-badge">
+              <mat-icon>warning</mat-icon>
+              Email not verified
+            </span>
+          }
+        </div>
+      </div>
+      <button mat-stroked-button color="warn" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        Logout
+      </button>
+    </div>
+
+    <mat-tab-group dynamicHeight>
+      <!-- My Parties Tab -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>celebration</mat-icon>
+          My Parties
+        </ng-template>
+
+        <div class="tab-content">
+          @if (isLoading()) {
+            <div class="loading-state">
+              <mat-spinner diameter="48"></mat-spinner>
+              <p>Loading your parties...</p>
+            </div>
+          } @else if (parties().length === 0) {
+            <div class="empty-state">
+              <mat-icon>celebration</mat-icon>
+              <h3>No parties yet</h3>
+              <p>Create your first Secret Santa party and start spreading the holiday joy!</p>
+              <button mat-raised-button color="primary" routerLink="/generator">
+                <mat-icon>add</mat-icon>
+                Create Party
+              </button>
+            </div>
+          } @else {
+            <div class="parties-grid">
+              @for (party of parties(); track party.id) {
+                <mat-card class="party-card">
+                  <mat-card-header>
+                    <mat-card-title>
+                      {{ party.location || 'Secret Santa Party' }}
+                    </mat-card-title>
+                    <mat-card-subtitle>
+                      @if (party.isHost) {
+                        <mat-chip color="warn" highlighted>
+                          <mat-icon matChipAvatar>star</mat-icon>
+                          Host
+                        </mat-chip>
+                      } @else {
+                        <mat-chip color="primary">
+                          <mat-icon matChipAvatar>person</mat-icon>
+                          Participant
+                        </mat-chip>
+                      }
+                    </mat-card-subtitle>
+                  </mat-card-header>
+
+                  <mat-card-content>
+                    <div class="party-details">
+                      @if (party.partyDate) {
+                        <div class="detail-item">
+                          <mat-icon>event</mat-icon>
+                          <span>{{ formatDate(party.partyDate) }}</span>
+                        </div>
+                      }
+                      <div class="detail-item">
+                        <mat-icon>people</mat-icon>
+                        <span>{{ party.participantCount }} participants</span>
+                      </div>
+                      <div class="detail-item">
+                        <mat-icon>info</mat-icon>
+                        <span class="status" [class]="'status-' + party.status">{{ party.status }}</span>
+                      </div>
+                    </div>
+                  </mat-card-content>
+
+                  <mat-card-actions>
+                    <button mat-button color="primary" (click)="viewParty(party.id)">
+                      <mat-icon>visibility</mat-icon>
+                      View Details
+                    </button>
+                  </mat-card-actions>
+                </mat-card>
+              }
+            </div>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- Change Password Tab -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>lock</mat-icon>
+          Change Password
+        </ng-template>
+
+        <div class="tab-content">
+          <div class="password-form-container">
+            <h3>Change Your Password</h3>
+            <p class="form-description">Use a strong password to keep your account secure.</p>
+
+            <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()" class="password-form">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Current Password</mat-label>
+                <input
+                  matInput
+                  [type]="showOldPassword() ? 'text' : 'password'"
+                  formControlName="oldPassword"
+                  placeholder="Enter current password"
+                  required>
+                <mat-icon matPrefix>lock</mat-icon>
+                <button
+                  mat-icon-button
+                  matSuffix
+                  type="button"
+                  (click)="showOldPassword.set(!showOldPassword())">
+                  <mat-icon>{{ showOldPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                @if (passwordForm.get('oldPassword')?.hasError('required') && passwordForm.get('oldPassword')?.touched) {
+                  <mat-error>Current password is required</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>New Password</mat-label>
+                <input
+                  matInput
+                  [type]="showNewPassword() ? 'text' : 'password'"
+                  formControlName="newPassword"
+                  placeholder="Enter new password"
+                  required>
+                <mat-icon matPrefix>lock</mat-icon>
+                <button
+                  mat-icon-button
+                  matSuffix
+                  type="button"
+                  (click)="showNewPassword.set(!showNewPassword())">
+                  <mat-icon>{{ showNewPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                @if (passwordForm.get('newPassword')?.hasError('required') && passwordForm.get('newPassword')?.touched) {
+                  <mat-error>New password is required</mat-error>
+                } @else if (passwordForm.get('newPassword')?.hasError('minlength')) {
+                  <mat-error>Password must be at least 6 characters</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Confirm New Password</mat-label>
+                <input
+                  matInput
+                  [type]="showConfirmPassword() ? 'text' : 'password'"
+                  formControlName="confirmPassword"
+                  placeholder="Confirm new password"
+                  required>
+                <mat-icon matPrefix>lock</mat-icon>
+                <button
+                  mat-icon-button
+                  matSuffix
+                  type="button"
+                  (click)="showConfirmPassword.set(!showConfirmPassword())">
+                  <mat-icon>{{ showConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                @if (passwordForm.get('confirmPassword')?.hasError('required') && passwordForm.get('confirmPassword')?.touched) {
+                  <mat-error>Please confirm your password</mat-error>
+                }
+              </mat-form-field>
+
+              <button
+                mat-raised-button
+                color="primary"
+                type="submit"
+                class="submit-btn"
+                [disabled]="isLoading()">
+                @if (isLoading()) {
+                  <mat-spinner diameter="20"></mat-spinner>
+                  <span>Changing password...</span>
+                } @else {
+                  <ng-container>
+                    <mat-icon>check</mat-icon>
+                    <span>Change Password</span>
+                  </ng-container>
+                }
+              </button>
+            </form>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</main>
+
+<app-footer></app-footer>
+

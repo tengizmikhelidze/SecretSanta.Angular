@@ -1,0 +1,108 @@
+@use "variables" as var;
+@use "responsive" as resp;
+
+.auth-modal {
+  min-width: 320px;
+  max-width: 500px;
+
+  @include resp.tablet-up {
+    min-width: 450px;
+  }
+}
+
+.auth-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var.$spacing-lg var.$spacing-xl;
+  border-bottom: 1px solid #e5e7eb;
+
+  h2 {
+    margin: 0;
+    font-size: var.$font-size-xl;
+    font-weight: 600;
+    color: var(--mat-sys-primary);
+  }
+
+  .close-btn {
+    color: #6b7280;
+  }
+}
+
+mat-dialog-content {
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.tab-content {
+  padding: var.$spacing-xl;
+  display: flex;
+  flex-direction: column;
+  gap: var.$spacing-md;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.submit-btn {
+  margin-top: var.$spacing-md;
+  height: 48px !important;
+  font-size: var.$font-size-md !important;
+
+  mat-spinner {
+    display: inline-block;
+    margin-right: var.$spacing-sm;
+  }
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: var.$spacing-lg 0;
+  color: #9ca3af;
+  font-size: var.$font-size-sm;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  span {
+    padding: 0 var.$spacing-md;
+  }
+}
+
+.google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var.$spacing-sm;
+  height: 48px !important;
+  border: 2px solid #e5e7eb !important;
+
+  .google-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover:not(:disabled) {
+    background: #f9fafb !important;
+    border-color: #d1d5db !important;
+  }
+}
+
+::ng-deep {
+  .mat-mdc-tab-labels {
+    justify-content: center;
+  }
+
+  .mat-mdc-tab {
+    flex: 1;
+    max-width: 50%;
+  }
+}
+

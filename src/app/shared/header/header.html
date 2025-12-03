@@ -40,7 +40,34 @@
           </div>
         </div>
         <div data-actions>
-          <button matIconButton>T</button>
+          @if (authService.isAuthenticated()) {
+            <button mat-icon-button [matMenuTriggerFor]="accountMenu" class="account-btn">
+              <mat-icon>account_circle</mat-icon>
+            </button>
+            <mat-menu #accountMenu="matMenu">
+              <div class="menu-header">
+                <mat-icon>person</mat-icon>
+                <div class="user-info">
+                  <strong>{{ authService.user()?.fullName || 'User' }}</strong>
+                  <span>{{ authService.user()?.email }}</span>
+                </div>
+              </div>
+              <mat-divider></mat-divider>
+              <button mat-menu-item (click)="goToAccount()">
+                <mat-icon>dashboard</mat-icon>
+                <span>My Account</span>
+              </button>
+              <button mat-menu-item (click)="logout()">
+                <mat-icon>logout</mat-icon>
+                <span>Logout</span>
+              </button>
+            </mat-menu>
+          } @else {
+            <button mat-raised-button color="primary" (click)="openAuthModal()" class="login-btn">
+              <mat-icon>login</mat-icon>
+              <span>Login</span>
+            </button>
+          }
         </div>
       </div>
     </div>

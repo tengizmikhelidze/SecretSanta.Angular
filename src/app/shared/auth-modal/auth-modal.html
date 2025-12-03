@@ -1,0 +1,190 @@
+hemc<div class="auth-modal">
+  <div class="auth-header">
+    <h2 mat-dialog-title>Welcome to Secret Santa 🎅</h2>
+    <button mat-icon-button (click)="close()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    <mat-tab-group animationDuration="300ms" dynamicHeight>
+      <!-- Login Tab -->
+      <mat-tab label="Login">
+        <div class="tab-content">
+          <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Email</mat-label>
+              <input
+                matInput
+                type="email"
+                formControlName="email"
+                placeholder="your@email.com"
+                required>
+              <mat-icon matPrefix>email</mat-icon>
+              @if (loginForm.get('email')?.hasError('required') && loginForm.get('email')?.touched) {
+                <mat-error>Email is required</mat-error>
+              } @else if (loginForm.get('email')?.hasError('email')) {
+                <mat-error>Invalid email format</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Password</mat-label>
+              <input
+                matInput
+                [type]="showPassword() ? 'text' : 'password'"
+                formControlName="password"
+                placeholder="Enter password"
+                required>
+              <mat-icon matPrefix>lock</mat-icon>
+              <button
+                mat-icon-button
+                matSuffix
+                type="button"
+                (click)="showPassword.set(!showPassword())">
+                <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              @if (loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched) {
+                <mat-error>Password is required</mat-error>
+              } @else if (loginForm.get('password')?.hasError('minlength')) {
+                <mat-error>Password must be at least 6 characters</mat-error>
+              }
+            </mat-form-field>
+
+            <button
+              mat-raised-button
+              color="primary"
+              type="submit"
+              class="full-width submit-btn"
+              [disabled]="isLoading()">
+              @if (isLoading()) {
+                <mat-spinner diameter="20"></mat-spinner>
+                <span>Logging in...</span>
+              } @else {
+                <span>Login</span>
+              }
+            </button>
+          </form>
+
+          <div class="divider">
+            <span>OR</span>
+          </div>
+
+          <button
+            mat-stroked-button
+            class="full-width google-btn"
+            (click)="onGoogleLogin()"
+            [disabled]="isLoading()">
+            <img src="https://www.google.com/favicon.ico" alt="Google" class="google-icon">
+            <span>Continue with Google</span>
+          </button>
+        </div>
+      </mat-tab>
+
+      <!-- Register Tab -->
+      <mat-tab label="Register">
+        <div class="tab-content">
+          <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Full Name (Optional)</mat-label>
+              <input
+                matInput
+                type="text"
+                formControlName="fullName"
+                placeholder="John Doe">
+              <mat-icon matPrefix>person</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Email</mat-label>
+              <input
+                matInput
+                type="email"
+                formControlName="email"
+                placeholder="your@email.com"
+                required>
+              <mat-icon matPrefix>email</mat-icon>
+              @if (registerForm.get('email')?.hasError('required') && registerForm.get('email')?.touched) {
+                <mat-error>Email is required</mat-error>
+              } @else if (registerForm.get('email')?.hasError('email')) {
+                <mat-error>Invalid email format</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Password</mat-label>
+              <input
+                matInput
+                [type]="showPassword() ? 'text' : 'password'"
+                formControlName="password"
+                placeholder="Create password"
+                required>
+              <mat-icon matPrefix>lock</mat-icon>
+              <button
+                mat-icon-button
+                matSuffix
+                type="button"
+                (click)="showPassword.set(!showPassword())">
+                <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              @if (registerForm.get('password')?.hasError('required') && registerForm.get('password')?.touched) {
+                <mat-error>Password is required</mat-error>
+              } @else if (registerForm.get('password')?.hasError('minlength')) {
+                <mat-error>Password must be at least 6 characters</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Confirm Password</mat-label>
+              <input
+                matInput
+                [type]="showConfirmPassword() ? 'text' : 'password'"
+                formControlName="confirmPassword"
+                placeholder="Confirm password"
+                required>
+              <mat-icon matPrefix>lock</mat-icon>
+              <button
+                mat-icon-button
+                matSuffix
+                type="button"
+                (click)="showConfirmPassword.set(!showConfirmPassword())">
+                <mat-icon>{{ showConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              @if (registerForm.get('confirmPassword')?.hasError('required') && registerForm.get('confirmPassword')?.touched) {
+                <mat-error>Please confirm your password</mat-error>
+              }
+            </mat-form-field>
+
+            <button
+              mat-raised-button
+              color="primary"
+              type="submit"
+              class="full-width submit-btn"
+              [disabled]="isLoading()">
+              @if (isLoading()) {
+                <mat-spinner diameter="20"></mat-spinner>
+                <span>Creating account...</span>
+              } @else {
+                <span>Create Account</span>
+              }
+            </button>
+          </form>
+
+          <div class="divider">
+            <span>OR</span>
+          </div>
+
+          <button
+            mat-stroked-button
+            class="full-width google-btn"
+            (click)="onGoogleLogin()"
+            [disabled]="isLoading()">
+            <img src="https://www.google.com/favicon.ico" alt="Google" class="google-icon">
+            <span>Sign up with Google</span>
+          </button>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-dialog-content>
+</div>
+

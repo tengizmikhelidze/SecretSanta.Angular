@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, inject, OnInit, ChangeDetectionStrategy, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,8 +7,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatTabsModule } from '@angular/material/tabs';
 import { Header } from '../../shared/header/header';
 import { Footer } from '../../shared/footer/footer';
+import { AssignmentManagement } from '../assignment-management/assignment-management';
 import { SecretSantaService } from '../../core/services/secret-santa.service';
 import { ErrorHandlerService } from '../../core/services/error-handler.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -26,13 +28,17 @@ import type { PartyDetails } from '../../core/models/api.models';
     MatProgressSpinnerModule,
     MatChipsModule,
     MatDividerModule,
-    MatDialogModule
+    MatDialogModule,
+    MatTabsModule,
+    AssignmentManagement
   ],
   templateUrl: './party.html',
   styleUrl: './party.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Party implements OnInit {
+  @ViewChild(AssignmentManagement) assignmentComponent!: AssignmentManagement;
+
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private dialog = inject(MatDialog);
@@ -67,6 +73,13 @@ export class Party implements OnInit {
 
       if (partyData) {
         this.partyDetails.set(partyData);
+
+        // Initialize assignment component with party details
+        setTimeout(() => {
+          if (this.assignmentComponent) {
+            this.assignmentComponent.setPartyDetails(partyData);
+          }
+        }, 0);
       } else {
         this.errorHandler.showError('Party not found');
         this.router.navigate(['/']);

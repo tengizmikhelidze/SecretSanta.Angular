@@ -74,59 +74,9 @@
         </mat-card-content>
       </mat-card>
 
-      <!-- Your Assignment -->
-      @if (getAssignedParticipant()) {
-        <mat-card class="assignment-card">
-          <mat-card-header>
-            <mat-card-title>
-              <mat-icon>card_giftcard</mat-icon>
-              Your Secret Santa Assignment
-            </mat-card-title>
-          </mat-card-header>
-
-          <mat-card-content>
-            <div class="assignment-info">
-              <mat-icon class="gift-icon">redeem</mat-icon>
-              <div>
-                <h3>You're buying a gift for:</h3>
-                <p class="recipient-name">{{ getAssignedParticipant()!.name }}</p>
-                <p class="recipient-email">{{ getAssignedParticipant()!.email }}</p>
-              </div>
-            </div>
-
-            @if (getAssignedParticipant()!.wishlist) {
-              <mat-divider></mat-divider>
-              <div class="wishlist-section">
-                <h4><mat-icon>favorite</mat-icon> Wishlist:</h4>
-                <p>{{ getAssignedParticipant()!.wishlist }}</p>
-              </div>
-            }
-          </mat-card-content>
-        </mat-card>
-      }
-
-      <!-- All Participants (Host Only) -->
-      @if (isHost() && partyDetails()!.party.host_can_see_all) {
-        <mat-card class="participants-card">
-          <mat-card-header>
-            <mat-card-title>
-              <mat-icon>visibility</mat-icon>
-              All Assignments (Host View)
-            </mat-card-title>
-          </mat-card-header>
-
-          <mat-card-content>
-            <div class="assignments-list">
-              @for (assignment of partyDetails()!.assignments; track assignment.id) {
-                <div class="assignment-row">
-                  <span class="giver">{{ assignment.giver_name }}</span>
-                  <mat-icon>arrow_forward</mat-icon>
-                  <span class="receiver">{{ assignment.receiver_name }}</span>
-                </div>
-              }
-            </div>
-          </mat-card-content>
-        </mat-card>
+      <!-- Secret Santa Assignment Management -->
+      @if (partyDetails() && !loading()) {
+        <app-assignment-management></app-assignment-management>
       }
 
       <!-- Participants List -->

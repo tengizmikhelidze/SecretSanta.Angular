@@ -1,0 +1,174 @@
+@if (partyDetails) {
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Loading assignments...</p>
+    </div>
+  } @else {
+    <!-- If Assignments Generated -->
+    @if (hasAssignments()) {
+      <!-- My Assignment Section (for participants) -->
+      @if (hasMyAssignment()) {
+        <mat-card class="my-assignment-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>card_giftcard</mat-icon>
+              Your Secret Santa Assignment
+            </mat-card-title>
+          </mat-card-header>
+
+          <mat-card-content>
+            @if (myAssignment(); as assignment) {
+              <div class="assignment-info">
+                <mat-icon class="gift-icon">redeem</mat-icon>
+                <div>
+                  <h3>You're buying a gift for:</h3>
+                  <p class="recipient-name">{{ assignment.receiver.name }}</p>
+                  <p class="recipient-email">{{ assignment.receiver.email }}</p>
+                </div>
+              </div>
+
+              @if (assignment.wishlist || assignment.wishlistDescription) {
+                <mat-divider></mat-divider>
+                <div class="wishlist-section">
+                  <h4>
+                    <mat-icon>favorite</mat-icon>
+                    Wishlist
+                  </h4>
+                  @if (assignment.wishlist) {
+                    <p class="wishlist-text">{{ assignment.wishlist }}</p>
+                  }
+                  @if (assignment.wishlistDescription) {
+                    <p class="wishlist-description">{{ assignment.wishlistDescription }}</p>
+                  }
+                </div>
+              }
+            }
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <!-- All Assignments Section (host only) -->
+      @if (canSeeAllAssignments()) {
+        <mat-card class="all-assignments-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>visibility</mat-icon>
+              All Assignments
+            </mat-card-title>
+            <mat-card-subtitle>
+              Secret Santa pairings for this party
+            </mat-card-subtitle>
+          </mat-card-header>
+
+          <mat-card-content>
+            @if (assignments().length > 0) {
+              <div class="assignments-list">
+                @for (assignment of assignments(); track assignment.id) {
+                  <div class="assignment-row">
+                    <div class="giver-info">
+                      <mat-icon>person</mat-icon>
+                      <div>
+                        <strong>{{ assignment.giver.name }}</strong>
+                        <span>{{ assignment.giver.email }}</span>
+                      </div>
+                    </div>
+
+                    <mat-icon class="arrow">arrow_forward</mat-icon>
+
+                    <div class="receiver-info">
+                      <mat-icon>card_giftcard</mat-icon>
+                      <div>
+                        <strong>{{ assignment.receiver.name }}</strong>
+                        <span>{{ assignment.receiver.email }}</span>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="empty-message">No assignments found</p>
+            }
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <!-- Host Actions -->
+      @if (isHost()) {
+        <mat-card class="actions-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>settings</mat-icon>
+              Assignment Management
+            </mat-card-title>
+          </mat-card-header>
+
+          <mat-card-actions>
+            <button
+              mat-raised-button
+              color="warn"
+              (click)="deleteAssignments()"
+              [disabled]="deletingAssignments()">
+              @if (deletingAssignments()) {
+                <mat-spinner diameter="20"></mat-spinner>
+                <span>Deleting...</span>
+              } @else {
+                <ng-container>
+                  <mat-icon>delete</mat-icon>
+                  <span>Delete Assignments</span>
+                </ng-container>
+              }
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      }
+    } @else {
+      <!-- No Assignments Yet -->
+      <mat-card class="no-assignments-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>card_giftcard</mat-icon>
+            Secret Santa Assignments
+          </mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="empty-state">
+            <mat-icon class="empty-icon">card_giftcard</mat-icon>
+            <h3>No Assignments Yet</h3>
+            <p>
+              Secret Santa assignments haven't been generated yet.
+              @if (isHost()) {
+                <br>Click the button below to generate assignments for all participants.
+              } @else {
+                <br>Wait for the party host to generate assignments.
+              }
+            </p>
+          </div>
+        </mat-card-content>
+
+        <!-- Host Generate Button -->
+        @if (isHost()) {
+          <mat-card-actions>
+            <button
+              mat-raised-button
+              color="primary"
+              (click)="generateAssignments()"
+              [disabled]="generatingAssignments()">
+              @if (generatingAssignments()) {
+                <mat-spinner diameter="20"></mat-spinner>
+                <span>Generating...</span>
+              } @else {
+                <ng-container>
+                  <mat-icon>shuffle</mat-icon>
+                  <span>Generate Secret Santa Assignments</span>
+                </ng-container>
+              }
+            </button>
+          </mat-card-actions>
+        }
+      </mat-card>
+    }
+  }
+}
+

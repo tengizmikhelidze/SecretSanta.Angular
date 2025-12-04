@@ -1,0 +1,337 @@
+@use "variables" as var;
+@use "responsive" as resp;
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var.$spacing-lg;
+  padding: var.$spacing-3xl;
+
+  p {
+    color: #6b7280;
+    font-size: var.$font-size-md;
+  }
+}
+
+// My Assignment Card
+.my-assignment-card {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+  margin-bottom: var.$spacing-lg;
+
+  mat-card-header {
+    margin-bottom: var.$spacing-lg;
+
+    mat-card-title {
+      display: flex;
+      align-items: center;
+      gap: var.$spacing-sm;
+      color: #92400e;
+      font-size: var.$font-size-xl;
+    }
+  }
+
+  .assignment-info {
+    display: flex;
+    gap: var.$spacing-lg;
+    align-items: center;
+    padding: var.$spacing-lg;
+    background: white;
+    border-radius: var.$border-radius-lg;
+
+    .gift-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      color: var(--mat-sys-primary);
+      flex-shrink: 0;
+    }
+
+    h3 {
+      margin: 0 0 var.$spacing-sm 0;
+      color: #6b7280;
+      font-size: var.$font-size-sm;
+      font-weight: 500;
+    }
+
+    .recipient-name {
+      margin: 0;
+      font-size: var.$font-size-xl;
+      font-weight: 700;
+      color: var(--mat-sys-primary);
+    }
+
+    .recipient-email {
+      margin: var.$spacing-xs 0 0 0;
+      font-size: var.$font-size-sm;
+      color: #6b7280;
+    }
+  }
+
+  .wishlist-section {
+    margin-top: var.$spacing-lg;
+    padding: var.$spacing-lg;
+    background: white;
+    border-radius: var.$border-radius-lg;
+
+    h4 {
+      display: flex;
+      align-items: center;
+      gap: var.$spacing-xs;
+      margin: 0 0 var.$spacing-sm 0;
+      color: #111827;
+      font-size: var.$font-size-md;
+
+      mat-icon {
+        color: #ef4444;
+      }
+    }
+
+    .wishlist-text {
+      margin: 0 0 var.$spacing-sm 0;
+      color: #374151;
+      line-height: 1.6;
+      font-weight: 500;
+    }
+
+    .wishlist-description {
+      margin: 0;
+      color: #6b7280;
+      line-height: 1.6;
+      font-size: var.$font-size-sm;
+    }
+  }
+}
+
+// All Assignments Card
+.all-assignments-card {
+  margin-bottom: var.$spacing-lg;
+
+  mat-card-header {
+    mat-card-title {
+      display: flex;
+      align-items: center;
+      gap: var.$spacing-sm;
+      font-size: var.$font-size-lg;
+    }
+  }
+
+  .assignments-list {
+    display: flex;
+    flex-direction: column;
+    gap: var.$spacing-md;
+
+    .assignment-row {
+      display: flex;
+      align-items: center;
+      gap: var.$spacing-md;
+      padding: var.$spacing-lg;
+      background: #f9fafb;
+      border-radius: var.$border-radius-md;
+
+      .giver-info,
+      .receiver-info {
+        display: flex;
+        align-items: center;
+        gap: var.$spacing-md;
+        flex: 1;
+        min-width: 0;
+
+        mat-icon {
+          color: var(--mat-sys-primary);
+          flex-shrink: 0;
+        }
+
+        div {
+          min-width: 0;
+
+          strong {
+            display: block;
+            color: #111827;
+            font-size: var.$font-size-md;
+            word-break: break-word;
+          }
+
+          span {
+            display: block;
+            color: #6b7280;
+            font-size: var.$font-size-sm;
+            word-break: break-all;
+            margin-top: 2px;
+          }
+        }
+      }
+
+      .arrow {
+        color: #9ca3af;
+        flex-shrink: 0;
+      }
+
+      @include resp.mobile {
+        flex-direction: column;
+        text-align: center;
+
+        .giver-info,
+        .receiver-info {
+          flex: none;
+          width: 100%;
+          justify-content: center;
+
+          div {
+            text-align: center;
+          }
+        }
+
+        .arrow {
+          transform: rotate(90deg);
+          margin: var.$spacing-sm 0;
+        }
+      }
+    }
+  }
+
+  .empty-message {
+    text-align: center;
+    color: #9ca3af;
+    padding: var.$spacing-xl;
+    margin: 0;
+  }
+}
+
+// No Assignments Card
+.no-assignments-card {
+  margin-bottom: var.$spacing-lg;
+
+  mat-card-header {
+    margin-bottom: 0;
+
+    mat-card-title {
+      display: flex;
+      align-items: center;
+      gap: var.$spacing-sm;
+      font-size: var.$font-size-lg;
+    }
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var.$spacing-lg;
+    padding: var.$spacing-3xl var.$spacing-xl;
+    text-align: center;
+
+    .empty-icon {
+      font-size: 96px;
+      width: 96px;
+      height: 96px;
+      color: #d1d5db;
+    }
+
+    h3 {
+      margin: 0;
+      font-size: var.$font-size-2xl;
+      color: #111827;
+      font-weight: 600;
+    }
+
+    p {
+      margin: 0;
+      color: #6b7280;
+      line-height: 1.6;
+      max-width: 400px;
+    }
+  }
+
+  mat-card-actions {
+    display: flex;
+    justify-content: center;
+    padding: var.$spacing-xl;
+    border-top: 1px solid #e5e7eb;
+  }
+}
+
+// Actions Card
+.actions-card {
+  mat-card-header {
+    mat-card-title {
+      display: flex;
+      align-items: center;
+      gap: var.$spacing-sm;
+      font-size: var.$font-size-lg;
+    }
+  }
+
+  mat-card-actions {
+    display: flex;
+    justify-content: flex-start;
+    gap: var.$spacing-md;
+    flex-wrap: wrap;
+
+    button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var.$spacing-xs;
+
+      mat-spinner {
+        margin: 0;
+      }
+
+      mat-icon {
+        margin: 0;
+      }
+    }
+  }
+}
+
+// Responsive adjustments
+@include resp.mobile {
+  .my-assignment-card {
+    .assignment-info {
+      flex-direction: column;
+      text-align: center;
+
+      .gift-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+      }
+    }
+  }
+
+  .all-assignments-card {
+    mat-card-actions {
+      flex-direction: column;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+
+  .no-assignments-card {
+    .empty-state {
+      .empty-icon {
+        font-size: 64px;
+        width: 64px;
+        height: 64px;
+      }
+
+      h3 {
+        font-size: var.$font-size-xl;
+      }
+    }
+
+    mat-card-actions {
+      flex-direction: column;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+}
+

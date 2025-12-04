@@ -255,5 +255,138 @@ export class SecretSantaService {
       return null;
     }
   }
-}
 
+  /**
+   * Generate Secret Santa assignments
+   */
+  async generateAssignments(
+    partyId: string,
+    options: {
+      regenerate?: boolean;
+      forceRegenerate?: boolean;
+      sendEmails?: boolean;
+      lockAfterGeneration?: boolean;
+      maxAttempts?: number;
+      seed?: number;
+    } = {}
+  ): Promise<any> {
+    const requestBody = {
+      regenerate: options.regenerate ?? false,
+      forceRegenerate: options.forceRegenerate ?? false,
+      sendEmails: options.sendEmails ?? true,
+      lockAfterGeneration: options.lockAfterGeneration ?? false,
+      maxAttempts: options.maxAttempts ?? 1000,
+      seed: options.seed ?? Date.now()
+    };
+
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<any>>(
+        `${this.API_URL}/parties/${partyId}/assignments/generate`,
+        requestBody
+      )
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || 'Failed to generate assignments');
+  }
+
+  /**
+   * Get assignments for a party
+   */
+  async getAssignments(partyId: string): Promise<any> {
+    const response = await firstValueFrom(
+      this.http.get<ApiResponse<any>>(
+        `${this.API_URL}/parties/${partyId}/assignments`
+      )
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || 'Failed to get assignments');
+  }
+
+  /**
+   * Delete assignments (host only)
+   */
+  async deleteAssignments(partyId: string): Promise<void> {
+    const response = await firstValueFrom(
+      this.http.delete<ApiResponse<any>>(
+        `${this.API_URL}/parties/${partyId}/assignments`
+      )
+    );
+
+    if (!response.success) {
+      throw new Error(response.message || 'Failed to delete assignments');
+    }
+  }
+
+  /**
+   * Add participant exclusion
+   */
+  async addExclusion(
+    partyId: string,
+    participant1Id: number,
+    participant2Id: number
+  ): Promise<void> {
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<any>>(
+        `${this.API_URL}/parties/${partyId}/assignments/exclusions`,
+        {
+          participant1Id,
+          participant2Id
+        }
+      )
+    );
+
+    if (!response.success) {
+      throw new Error(response.message || 'Failed to add exclusion');
+    }
+  }
+
+  /**
+   * Remove participant exclusion
+   */
+  async removeExclusion(
+    partyId: string,
+    participant1Id: number,
+    participant2Id: number
+  ): Promise<void> {
+    const response = await firstValueFrom(
+      this.http.delete<ApiResponse<any>>(
+        `${this.API_URL}/parties/${partyId}/assignments/exclusions`,
+        {
+          body: {
+            participant1Id,
+            participant2Id
+          }
+        }
+      )
+    );
+
+    if (!response.success) {
+      throw new Error(response.message || 'Failed to remove exclusion');
+    }
+  }
+
+  /**
+   * Get exclusions for a party
+   */
+  async getExclusions(partyId: string): Promise<any[]> {
+    const response = await firstValueFrom(
+      this.http.get<ApiResponse<any[]>>(
+        `${this.API_URL}/parties/${partyId}/assignments/exclusions`
+      )
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || 'Failed to get exclusions');
+  }
+}

@@ -1,0 +1,171 @@
+<app-header></app-header>
+
+<main>
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="64"></mat-spinner>
+      <p>Loading party details...</p>
+    </div>
+  } @else if (partyDetails()) {
+    <div class="party-container">
+      <!-- Party Header -->
+      <mat-card class="party-header-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>celebration</mat-icon>
+            {{ partyDetails()!.party.location || 'Secret Santa Party' }}
+          </mat-card-title>
+          <mat-card-subtitle>
+            <mat-chip [highlighted]="partyDetails()!.party.status === 'active'"
+                      [color]="partyDetails()!.party.status === 'active' ? 'primary' : 'accent'">
+              {{ partyDetails()!.party.status }}
+            </mat-chip>
+          </mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="party-info-grid">
+            @if (partyDetails()!.party.party_date) {
+              <div class="info-item">
+                <mat-icon>event</mat-icon>
+                <div>
+                  <strong>Party Date</strong>
+                  <p>{{ formatDate(partyDetails()!.party.party_date) }}</p>
+                </div>
+              </div>
+            }
+
+            @if (partyDetails()!.party.max_amount) {
+              <div class="info-item">
+                <mat-icon>attach_money</mat-icon>
+                <div>
+                  <strong>Budget</strong>
+                  <p>${{ partyDetails()!.party.max_amount }}</p>
+                </div>
+              </div>
+            }
+
+            <div class="info-item">
+              <mat-icon>people</mat-icon>
+              <div>
+                <strong>Participants</strong>
+                <p>{{ partyDetails()!.participants.length }} people</p>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <mat-icon>email</mat-icon>
+              <div>
+                <strong>Host</strong>
+                <p>{{ partyDetails()!.party.host_email }}</p>
+              </div>
+            </div>
+          </div>
+
+          @if (partyDetails()!.party.personal_message) {
+            <div class="message-section">
+              <mat-icon>message</mat-icon>
+              <div class="message-content">
+                <strong>Message from Host:</strong>
+                <p>{{ partyDetails()!.party.personal_message }}</p>
+              </div>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Your Assignment -->
+      @if (getAssignedParticipant()) {
+        <mat-card class="assignment-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>card_giftcard</mat-icon>
+              Your Secret Santa Assignment
+            </mat-card-title>
+          </mat-card-header>
+
+          <mat-card-content>
+            <div class="assignment-info">
+              <mat-icon class="gift-icon">redeem</mat-icon>
+              <div>
+                <h3>You're buying a gift for:</h3>
+                <p class="recipient-name">{{ getAssignedParticipant()!.name }}</p>
+                <p class="recipient-email">{{ getAssignedParticipant()!.email }}</p>
+              </div>
+            </div>
+
+            @if (getAssignedParticipant()!.wishlist) {
+              <mat-divider></mat-divider>
+              <div class="wishlist-section">
+                <h4><mat-icon>favorite</mat-icon> Wishlist:</h4>
+                <p>{{ getAssignedParticipant()!.wishlist }}</p>
+              </div>
+            }
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <!-- All Participants (Host Only) -->
+      @if (isHost() && partyDetails()!.party.host_can_see_all) {
+        <mat-card class="participants-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>visibility</mat-icon>
+              All Assignments (Host View)
+            </mat-card-title>
+          </mat-card-header>
+
+          <mat-card-content>
+            <div class="assignments-list">
+              @for (assignment of partyDetails()!.assignments; track assignment.id) {
+                <div class="assignment-row">
+                  <span class="giver">{{ assignment.giver_name }}</span>
+                  <mat-icon>arrow_forward</mat-icon>
+                  <span class="receiver">{{ assignment.receiver_name }}</span>
+                </div>
+              }
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <!-- Participants List -->
+      <mat-card class="participants-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>group</mat-icon>
+            Participants
+          </mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="participants-list">
+            @for (participant of partyDetails()!.participants; track participant.id) {
+              <div class="participant-item">
+                <mat-icon>person</mat-icon>
+                <div class="participant-info">
+                  <strong>{{ participant.name }}</strong>
+                  <span>{{ participant.email }}</span>
+                </div>
+                @if (participant.is_host) {
+                  <mat-chip color="warn">Host</mat-chip>
+                }
+              </div>
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Actions -->
+      <div class="actions">
+        <button mat-raised-button (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+          Back to Account
+        </button>
+      </div>
+    </div>
+  }
+</main>
+
+<app-footer></app-footer>
+

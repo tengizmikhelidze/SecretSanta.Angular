@@ -80,6 +80,19 @@ main {
         word-break: break-word;
       }
 
+      .verification-section {
+        display: flex;
+        flex-direction: column;
+        gap: var.$spacing-xs;
+        margin-top: var.$spacing-xs;
+
+        @include resp.tablet-up {
+          flex-direction: row;
+          align-items: center;
+          gap: var.$spacing-md;
+        }
+      }
+
       .verification-badge {
         display: inline-flex;
         align-items: center;
@@ -90,11 +103,49 @@ main {
         border-radius: var.$border-radius-full;
         font-size: var.$font-size-xs;
         font-weight: 500;
+        width: fit-content;
 
         mat-icon {
           font-size: 16px;
           width: 16px;
           height: 16px;
+        }
+      }
+
+      .verified-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: var.$spacing-xs;
+        padding: var.$spacing-xs var.$spacing-sm;
+        background: #d1fae5;
+        color: #065f46;
+        border-radius: var.$border-radius-full;
+        font-size: var.$font-size-xs;
+        font-weight: 500;
+        width: fit-content;
+
+        mat-icon {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+        }
+      }
+
+      .resend-btn {
+        height: 32px !important;
+        font-size: var.$font-size-xs !important;
+        padding: 0 var.$spacing-md !important;
+
+        mat-spinner {
+          display: inline-block;
+          margin-right: var.$spacing-xs;
+        }
+
+        mat-icon {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+          margin-right: var.$spacing-xs;
         }
       }
     }
@@ -286,4 +337,3 @@ main {
     }
   }
 }
-

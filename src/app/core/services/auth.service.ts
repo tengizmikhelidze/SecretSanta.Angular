@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { ErrorHandlerService } from './error-handler.service';
 import type {
   User,
   AuthResponse,
@@ -22,6 +23,7 @@ export class AuthService {
 
   private http = inject(HttpClient);
   private router = inject(Router);
+  private errorHandler = inject(ErrorHandlerService);
 
   private currentUser = signal<User | null>(this.loadUserFromStorage());
   private authToken = signal<string | null>(this.loadTokenFromStorage());
@@ -34,36 +36,46 @@ export class AuthService {
    * Register with email and password
    */
   async register(email: string, password: string, fullName?: string): Promise<User> {
-    const requestData: RegisterRequest = { email, password, fullName };
+    try {
+      const requestData: RegisterRequest = { email, password, fullName };
 
-    const response = await firstValueFrom(
-      this.http.post<AuthResponse>(`${this.API_URL}/auth/register`, requestData)
-    );
+      const response = await firstValueFrom(
+        this.http.post<AuthResponse>(`${this.API_URL}/auth/register`, requestData)
+      );
 
-    if (response.success && response.data) {
-      this.setAuth(response.data.user, response.data.token);
-      return response.data.user;
+      if (response.success && response.data) {
+        this.setAuth(response.data.user, response.data.token);
+        return response.data.user;
+      }
+
+      throw new Error(response.message || 'Registration failed');
+    } catch (error) {
+      // Re-throw with handled error message
+      throw new Error(this.errorHandler.handleError(error, 'Registration failed'));
     }
-
-    throw new Error(response.message || 'Registration failed');
   }
 
   /**
    * Login with email and password
    */
   async login(email: string, password: string): Promise<User> {
-    const requestData: LoginRequest = { email, password };
+    try {
+      const requestData: LoginRequest = { email, password };
 
-    const response = await firstValueFrom(
-      this.http.post<AuthResponse>(`${this.API_URL}/auth/login`, requestData)
-    );
+      const response = await firstValueFrom(
+        this.http.post<AuthResponse>(`${this.API_URL}/auth/login`, requestData)
+      );
 
-    if (response.success && response.data) {
-      this.setAuth(response.data.user, response.data.token);
-      return response.data.user;
+      if (response.success && response.data) {
+        this.setAuth(response.data.user, response.data.token);
+        return response.data.user;
+      }
+
+      throw new Error(response.message || 'Login failed');
+    } catch (error) {
+      // Re-throw with handled error message
+      throw new Error(this.errorHandler.handleError(error, 'Login failed'));
     }
-
-    throw new Error(response.message || 'Login failed');
   }
 
   /**
@@ -144,14 +156,19 @@ export class AuthService {
    * Change password
    */
   async changePassword(oldPassword: string, newPassword: string): Promise<void> {
-    const requestData: ChangePasswordRequest = { oldPassword, newPassword };
+    try {
+      const requestData: ChangePasswordRequest = { oldPassword, newPassword };
 
-    const response = await firstValueFrom(
-      this.http.post<ApiResponse<any>>(`${this.API_URL}/auth/change-password`, requestData)
-    );
+      const response = await firstValueFrom(
+        this.http.post<ApiResponse<any>>(`${this.API_URL}/auth/change-password`, requestData)
+      );
 
-    if (!response.success) {
-      throw new Error(response.message || 'Failed to change password');
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to change password');
+      }
+    } catch (error) {
+      // Re-throw with handled error message
+      throw new Error(this.errorHandler.handleError(error, 'Failed to change password'));
     }
   }
 

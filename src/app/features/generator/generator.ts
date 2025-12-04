@@ -15,6 +15,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Header } from '../../shared/header/header';
 import { Footer } from '../../shared/footer/footer';
 import { SecretSantaService } from '../../core/services/secret-santa.service';
+import { AuthService } from '../../core/services/auth.service';
 import { uniqueEmailInArrayValidator } from '../../core/validators/unique-email.validator';
 import { Subject, takeUntil, debounceTime } from 'rxjs';
 
@@ -64,6 +65,7 @@ export class Generator implements OnInit, OnDestroy {
   private router = inject(Router);
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
+  private authService = inject(AuthService);
   private secretSantaService = inject(SecretSantaService);
   private destroy$ = new Subject<void>();
 
@@ -90,8 +92,17 @@ export class Generator implements OnInit, OnDestroy {
   protected readonly isFormValid = signal(false);
 
   constructor() {
-    // Initialize with 4 empty participant rows (first one is host)
-    this.addParticipant(true); // Host
+    // Get logged-in user data
+    const currentUser = this.authService.user();
+
+    // Initialize with 4 participant rows
+    // First row is host - pre-filled if user is logged in
+    if (currentUser) {
+      this.addParticipant(true, currentUser.full_name || currentUser.email.split('@')[0], currentUser.email);
+    } else {
+      this.addParticipant(true); // Empty host row
+    }
+
     this.addParticipant();
     this.addParticipant();
     this.addParticipant();
@@ -225,10 +236,10 @@ export class Generator implements OnInit, OnDestroy {
     }
   }
 
-  protected addParticipant(isHost: boolean = false): void {
+  protected addParticipant(isHost: boolean = false, name: string = '', email: string = ''): void {
     const participantForm = this.fb.group({
-      name: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
+      name: [name, Validators.required],
+      email: [email, [Validators.required, Validators.email]],
       isHost: [isHost]
     });
 

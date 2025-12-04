@@ -7,8 +7,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../../core/services/auth.service';
+import { ErrorHandlerService } from '../../core/services/error-handler.service';
 
 @Component({
   selector: 'app-auth-modal',
@@ -30,7 +30,7 @@ export class AuthModal {
   private fb = inject(FormBuilder);
   private dialogRef = inject(MatDialogRef<AuthModal>);
   private authService = inject(AuthService);
-  private snackBar = inject(MatSnackBar);
+  private errorHandler = inject(ErrorHandlerService);
 
   protected readonly isLoading = signal(false);
   protected readonly showPassword = signal(false);
@@ -57,21 +57,10 @@ export class AuthModal {
       const { email, password } = this.loginForm.value;
       await this.authService.login(email!, password!);
 
-      this.snackBar.open('✅ Login successful!', 'Close', {
-        duration: 3000,
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom',
-        panelClass: ['success-snackbar']
-      });
-
+      this.errorHandler.showSuccess('Login successful!');
       this.dialogRef.close({ success: true });
     } catch (error: any) {
-      this.snackBar.open(`❌ ${error.message || 'Login failed. Please check your credentials.'}`, 'Close', {
-        duration: 5000,
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom',
-        panelClass: ['error-snackbar']
-      });
+      this.errorHandler.showError(error);
     } finally {
       this.isLoading.set(false);
     }
@@ -83,12 +72,7 @@ export class AuthModal {
     const { password, confirmPassword } = this.registerForm.value;
 
     if (password !== confirmPassword) {
-      this.snackBar.open('❌ Passwords do not match', 'Close', {
-        duration: 3000,
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom',
-        panelClass: ['error-snackbar']
-      });
+      this.errorHandler.showError('Passwords do not match');
       return;
     }
 
@@ -98,21 +82,10 @@ export class AuthModal {
       const { email, fullName } = this.registerForm.value;
       await this.authService.register(email!, password!, fullName || undefined);
 
-      this.snackBar.open('✅ Registration successful! Please check your email to verify your account.', 'Close', {
-        duration: 5000,
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom',
-        panelClass: ['success-snackbar']
-      });
-
+      this.errorHandler.showSuccess('Registration successful! Please check your email to verify your account.');
       this.dialogRef.close({ success: true });
     } catch (error: any) {
-      this.snackBar.open(`❌ ${error.message || 'Registration failed. Please try again.'}`, 'Close', {
-        duration: 5000,
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom',
-        panelClass: ['error-snackbar']
-      });
+      this.errorHandler.showError(error);
     } finally {
       this.isLoading.set(false);
     }
@@ -127,12 +100,7 @@ export class AuthModal {
       await this.authService.loginWithGoogle();
       // Will redirect to Google OAuth
     } catch (error: any) {
-      this.snackBar.open(`❌ ${error.message || 'Google login failed. Please try again.'}`, 'Close', {
-        duration: 5000,
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom',
-        panelClass: ['error-snackbar']
-      });
+      this.errorHandler.showError(error, 'Google login failed');
       this.isLoading.set(false);
     }
   }

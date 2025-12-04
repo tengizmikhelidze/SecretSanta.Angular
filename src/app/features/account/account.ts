@@ -4,16 +4,16 @@ import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
-import {MatFormFieldModule} from '@angular/material/form-field';
-import {MatInputModule} from '@angular/material/input';
-import {MatTabsModule} from '@angular/material/tabs';
-import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
-import {MatSnackBar} from '@angular/material/snack-bar';
-import {MatChipsModule} from '@angular/material/chips';
-import {Header} from '../../shared/header/header';
-import {Footer} from '../../shared/footer/footer';
-import {AuthService} from '../../core/services/auth.service';
-import {SecretSantaService} from '../../core/services/secret-santa.service';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatChipsModule } from '@angular/material/chips';
+import { Header } from '../../shared/header/header';
+import { Footer } from '../../shared/footer/footer';
+import { AuthService } from '../../core/services/auth.service';
+import { SecretSantaService } from '../../core/services/secret-santa.service';
+import { ErrorHandlerService } from '../../core/services/error-handler.service';
 
 interface PartyListItem {
   id: string;
@@ -50,10 +50,11 @@ export class Account implements OnInit {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private secretSantaService = inject(SecretSantaService);
-  private snackBar = inject(MatSnackBar);
+  private errorHandler = inject(ErrorHandlerService);
 
   protected readonly user = this.authService.user;
   protected readonly isLoading = signal(false);
+  protected readonly isResendingVerification = signal(false);
   protected readonly parties = signal<PartyListItem[]>([]);
   protected readonly showOldPassword = signal(false);
   protected readonly showNewPassword = signal(false);
@@ -81,37 +82,48 @@ export class Account implements OnInit {
     try {
       const accountData = await this.secretSantaService.getUserParties();
 
-      // Transform to PartyListItem format
-      const allParties: PartyListItem[] = [
-        ...accountData.hostedParties.map(party => ({
+      // Transform to PartyListItem format and fetch participant counts
+      const hostedPartiesPromises = accountData.hostedParties.map(async party => {
+        // Fetch full party details to get participant count
+        const partyDetails = await this.secretSantaService.getParty(party.id);
+
+        return {
           id: party.id,
           partyDate: party.party_date || undefined,
           location: party.location || undefined,
-          participantCount: 0, // Will be populated by backend in real implementation
+          participantCount: partyDetails?.participants.length || 0,
           status: party.status,
           isHost: true,
           createdAt: party.created_at
-        })),
-        ...accountData.participantParties.map(party => ({
+        };
+      });
+
+      const participantPartiesPromises = accountData.participantParties.map(async party => {
+        // Fetch full party details to get participant count
+        const partyDetails = await this.secretSantaService.getParty(party.id);
+
+        return {
           id: party.id,
           partyDate: party.party_date || undefined,
           location: party.location || undefined,
-          participantCount: 0,
+          participantCount: partyDetails?.participants.length || 0,
           status: party.status,
           isHost: false,
           createdAt: party.created_at
-        }))
-      ];
+        };
+      });
 
+      // Wait for all party details to be fetched
+      const [hostedParties, participantParties] = await Promise.all([
+        Promise.all(hostedPartiesPromises),
+        Promise.all(participantPartiesPromises)
+      ]);
+
+      const allParties = [...hostedParties, ...participantParties];
       this.parties.set(allParties);
     } catch (error) {
       console.error('Error loading parties:', error);
-      this.snackBar.open('❌ Failed to load parties', 'Close', {
-        duration: 3000,
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom',
-        panelClass: ['error-snackbar']
-      });
+      this.errorHandler.showError(error, 'Failed to load parties');
     } finally {
       this.isLoading.set(false);
     }
@@ -123,12 +135,7 @@ export class Account implements OnInit {
     const {newPassword, confirmPassword, oldPassword} = this.passwordForm.value;
 
     if (newPassword !== confirmPassword) {
-      this.snackBar.open('❌ Passwords do not match', 'Close', {
-        duration: 3000,
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom',
-        panelClass: ['error-snackbar']
-      });
+      this.errorHandler.showError('Passwords do not match');
       return;
     }
 
@@ -137,21 +144,11 @@ export class Account implements OnInit {
     try {
       await this.authService.changePassword(oldPassword!, newPassword!);
 
-      this.snackBar.open('✅ Password changed successfully!', 'Close', {
-        duration: 3000,
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom',
-        panelClass: ['success-snackbar']
-      });
+      this.errorHandler.showSuccess('Password changed successfully!');
 
       this.passwordForm.reset();
     } catch (error) {
-      this.snackBar.open('❌ Failed to change password. Please check your old password.', 'Close', {
-        duration: 5000,
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom',
-        panelClass: ['error-snackbar']
-      });
+      this.errorHandler.showError(error, 'Failed to change password');
     } finally {
       this.isLoading.set(false);
     }
@@ -163,6 +160,21 @@ export class Account implements OnInit {
 
   protected logout(): void {
     this.authService.logout();
+  }
+
+  protected async resendVerificationEmail(): Promise<void> {
+    if (this.isResendingVerification()) return;
+
+    this.isResendingVerification.set(true);
+
+    try {
+      await this.authService.resendVerificationEmail();
+      this.errorHandler.showSuccess('Verification email sent! Please check your inbox.');
+    } catch (error) {
+      this.errorHandler.showError(error, 'Failed to send verification email');
+    } finally {
+      this.isResendingVerification.set(false);
+    }
   }
 
   protected formatDate(dateString: string): string {

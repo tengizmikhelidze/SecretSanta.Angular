@@ -40,6 +40,16 @@ export class Header {
     });
   }
 
+  protected onLogoClick(): void {
+    if (this.authService.isAuthenticated()) {
+      // Logged in - navigate to generator page
+      this.router.navigate(['/generator']);
+    } else {
+      // Not logged in - open login/register modal
+      this.openAuthModal();
+    }
+  }
+
   protected logout(): void {
     this.authService.logout();
   }

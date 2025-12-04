@@ -6,11 +6,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Header } from '../../shared/header/header';
 import { Footer } from '../../shared/footer/footer';
 import { SecretSantaService } from '../../core/services/secret-santa.service';
 import { ErrorHandlerService } from '../../core/services/error-handler.service';
 import { AuthService } from '../../core/services/auth.service';
+import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 import type { PartyDetails } from '../../core/models/api.models';
 
 @Component({
@@ -23,7 +25,8 @@ import type { PartyDetails } from '../../core/models/api.models';
     MatIconModule,
     MatProgressSpinnerModule,
     MatChipsModule,
-    MatDividerModule
+    MatDividerModule,
+    MatDialogModule
   ],
   templateUrl: './party.html',
   styleUrl: './party.scss',
@@ -32,12 +35,14 @@ import type { PartyDetails } from '../../core/models/api.models';
 export class Party implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private dialog = inject(MatDialog);
   private secretSantaService = inject(SecretSantaService);
   private errorHandler = inject(ErrorHandlerService);
   private authService = inject(AuthService);
 
   protected readonly partyDetails = signal<PartyDetails | null>(null);
   protected readonly loading = signal(true);
+  protected readonly deleting = signal(false);
   protected readonly currentUser = this.authService.user;
 
   async ngOnInit() {
@@ -92,6 +97,58 @@ export class Party implements OnInit {
     const party = this.partyDetails();
     if (!party || !party.userParticipant) return false;
     return party.userParticipant.is_host;
+  }
+
+  protected canDelete(): boolean {
+    const party = this.partyDetails();
+    const user = this.currentUser();
+
+    // Must be logged in
+    if (!user) return false;
+
+    // Must be the host
+    if (!party || !party.userParticipant || !party.userParticipant.is_host) return false;
+
+    // Host's email must match current user's email
+    return party.party.host_email === user.email;
+  }
+
+  protected async deleteParty(): Promise<void> {
+    if (this.deleting()) return;
+
+    const party = this.partyDetails();
+    if (!party) return;
+
+    // Open confirmation dialog
+    const dialogRef = this.dialog.open(ConfirmDialog, {
+      width: '400px',
+      data: {
+        title: 'Delete Party?',
+        message: `Are you sure you want to delete "${party.party.location || 'this party'}"? This action cannot be undone.`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        confirmColor: 'warn'
+      }
+    });
+
+    const confirmed = await dialogRef.afterClosed().toPromise();
+
+    if (!confirmed) return;
+
+    this.deleting.set(true);
+
+    try {
+      await this.secretSantaService.deleteParty(party.party.id);
+
+      this.errorHandler.showSuccess('Party deleted successfully');
+
+      // Navigate back to account page
+      this.router.navigate(['/account']);
+    } catch (error) {
+      this.errorHandler.showError(error, 'Failed to delete party');
+    } finally {
+      this.deleting.set(false);
+    }
   }
 
   protected formatDate(dateString: string | null): string {

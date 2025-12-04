@@ -9,11 +9,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Header } from '../../shared/header/header';
 import { Footer } from '../../shared/footer/footer';
 import { AuthService } from '../../core/services/auth.service';
 import { SecretSantaService } from '../../core/services/secret-santa.service';
 import { ErrorHandlerService } from '../../core/services/error-handler.service';
+import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 
 interface PartyListItem {
   id: string;
@@ -39,7 +41,8 @@ interface PartyListItem {
     MatInputModule,
     MatTabsModule,
     MatProgressSpinnerModule,
-    MatChipsModule
+    MatChipsModule,
+    MatDialogModule
   ],
   templateUrl: './account.html',
   styleUrl: './account.scss',
@@ -48,6 +51,7 @@ interface PartyListItem {
 export class Account implements OnInit {
   private router = inject(Router);
   private fb = inject(FormBuilder);
+  private dialog = inject(MatDialog);
   private authService = inject(AuthService);
   private secretSantaService = inject(SecretSantaService);
   private errorHandler = inject(ErrorHandlerService);
@@ -55,6 +59,7 @@ export class Account implements OnInit {
   protected readonly user = this.authService.user;
   protected readonly isLoading = signal(false);
   protected readonly isResendingVerification = signal(false);
+  protected readonly deletingPartyId = signal<string | null>(null);
   protected readonly parties = signal<PartyListItem[]>([]);
   protected readonly showOldPassword = signal(false);
   protected readonly showNewPassword = signal(false);
@@ -156,6 +161,45 @@ export class Account implements OnInit {
 
   protected viewParty(partyId: string): void {
     this.router.navigate(['/party', partyId]);
+  }
+
+  protected async deleteParty(partyId: string, partyName: string, event: Event): Promise<void> {
+    // Prevent navigation when clicking delete button
+    event.stopPropagation();
+
+    if (this.deletingPartyId()) return;
+
+    // Open confirmation dialog
+    const dialogRef = this.dialog.open(ConfirmDialog, {
+      width: '400px',
+      data: {
+        title: 'Delete Party?',
+        message: `Are you sure you want to delete "${partyName || 'this party'}"? This action cannot be undone and all participant data will be lost.`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        confirmColor: 'warn'
+      }
+    });
+
+    const confirmed = await dialogRef.afterClosed().toPromise();
+
+    if (!confirmed) return;
+
+    this.deletingPartyId.set(partyId);
+
+    try {
+      await this.secretSantaService.deleteParty(partyId);
+
+      this.errorHandler.showSuccess('Party deleted successfully');
+
+      // Remove from local list
+      const currentParties = this.parties();
+      this.parties.set(currentParties.filter(p => p.id !== partyId));
+    } catch (error) {
+      this.errorHandler.showError(error, 'Failed to delete party');
+    } finally {
+      this.deletingPartyId.set(null);
+    }
   }
 
   protected logout(): void {

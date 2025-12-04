@@ -162,6 +162,24 @@
           <mat-icon>arrow_back</mat-icon>
           Back to Account
         </button>
+
+        @if (canDelete()) {
+          <button
+            mat-raised-button
+            color="warn"
+            (click)="deleteParty()"
+            [disabled]="deleting()">
+            @if (deleting()) {
+              <mat-spinner diameter="20"></mat-spinner>
+              <span>Deleting...</span>
+            } @else {
+              <ng-container>
+                <mat-icon>delete</mat-icon>
+                <span>Delete Party</span>
+              </ng-container>
+            }
+          </button>
+        }
       </div>
     </div>
   }

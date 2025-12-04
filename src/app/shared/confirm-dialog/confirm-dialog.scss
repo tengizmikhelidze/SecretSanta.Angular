@@ -1,0 +1,45 @@
+@use "variables" as var;
+
+.confirm-dialog {
+  min-width: 320px;
+  max-width: 500px;
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: var.$spacing-sm;
+    margin: 0;
+    padding: var.$spacing-lg;
+    color: #111827;
+    font-size: var.$font-size-xl;
+    font-weight: 600;
+
+    .dialog-icon {
+      color: #f59e0b;
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
+  }
+
+  mat-dialog-content {
+    padding: 0 var.$spacing-lg var.$spacing-lg;
+    color: #6b7280;
+    line-height: 1.6;
+
+    p {
+      margin: 0;
+    }
+  }
+
+  mat-dialog-actions {
+    padding: var.$spacing-lg;
+    border-top: 1px solid #e5e7eb;
+    gap: var.$spacing-sm;
+
+    button {
+      min-width: 80px;
+    }
+  }
+}
+

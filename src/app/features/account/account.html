@@ -120,6 +120,23 @@
                       <mat-icon>visibility</mat-icon>
                       View Details
                     </button>
+                    @if (party.isHost) {
+                      <button
+                        mat-button
+                        color="warn"
+                        (click)="deleteParty(party.id, party.location || 'Secret Santa Party', $event)"
+                        [disabled]="deletingPartyId() === party.id">
+                        @if (deletingPartyId() === party.id) {
+                          <mat-spinner diameter="16"></mat-spinner>
+                          <span>Deleting...</span>
+                        } @else {
+                          <ng-container>
+                            <mat-icon>delete</mat-icon>
+                            <span>Delete</span>
+                          </ng-container>
+                        }
+                      </button>
+                    }
                   </mat-card-actions>
                 </mat-card>
               }

@@ -276,6 +276,18 @@ main {
 
   mat-card-actions {
     padding: var.$spacing-md var.$spacing-lg;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var.$spacing-sm;
+
+    button {
+      mat-spinner {
+        display: inline-block;
+        margin-right: var.$spacing-xs;
+      }
+    }
   }
 }
 

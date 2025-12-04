@@ -272,5 +272,17 @@ main {
   justify-content: center;
   gap: var.$spacing-md;
   margin-top: var.$spacing-lg;
+  flex-wrap: wrap;
+
+  button {
+    mat-spinner {
+      display: inline-block;
+      margin-right: var.$spacing-xs;
+    }
+
+    mat-icon {
+      margin-right: var.$spacing-xs;
+    }
+  }
 }
 

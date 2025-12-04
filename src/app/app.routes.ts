@@ -23,6 +23,10 @@ export const routes: Routes = [
       {
         path: "party/:id",
         loadComponent: () => import('./features/party/party').then(c => c.Party)
+      },
+      {
+        path: "verify-email",
+        loadComponent: () => import('./features/verify-email/verify-email').then(c => c.VerifyEmail)
       }
     ]
   }

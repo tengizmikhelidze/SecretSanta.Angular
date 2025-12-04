@@ -126,17 +126,24 @@ export class AuthService {
    * Verify email with token
    */
   async verifyEmail(token: string): Promise<boolean> {
-    const response = await firstValueFrom(
-      this.http.post<ApiResponse<any>>(`${this.API_URL}/auth/verify-email`, { token })
-    );
+    try {
+      const response = await firstValueFrom(
+        this.http.post<ApiResponse<any>>(`${this.API_URL}/auth/verify-email`, { token })
+      );
 
-    if (response.success) {
-      // Refresh user data
-      await this.getCurrentUser();
-      return true;
+      if (response.success) {
+        // Refresh user data if logged in
+        if (this.isAuthenticated()) {
+          await this.getCurrentUser();
+        }
+        return true;
+      }
+
+      throw new Error(response.message || 'Email verification failed');
+    } catch (error) {
+      // Re-throw with handled error message
+      throw new Error(this.errorHandler.handleError(error, 'Email verification failed'));
     }
-
-    throw new Error(response.message || 'Email verification failed');
   }
 
   /**

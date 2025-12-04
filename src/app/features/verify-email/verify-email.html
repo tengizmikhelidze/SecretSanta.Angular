@@ -1,0 +1,108 @@
+<app-header></app-header>
+
+<main>
+  <div class="verify-container">
+    <mat-card class="verify-card">
+      @switch (state()) {
+        <!-- Verifying State -->
+        @case ('verifying') {
+          <mat-card-content class="state-content">
+            <div class="icon-container verifying">
+              <mat-spinner diameter="64"></mat-spinner>
+            </div>
+            <h2>Verifying Your Email</h2>
+            <p>Please wait while we verify your email address...</p>
+          </mat-card-content>
+        }
+
+        <!-- Success State -->
+        @case ('success') {
+          <mat-card-content class="state-content">
+            <div class="icon-container success">
+              <mat-icon>check_circle</mat-icon>
+            </div>
+            <h2>Email Verified!</h2>
+            <p>Your email address has been successfully verified.</p>
+            <p class="redirect-message">Redirecting you in a few seconds...</p>
+          </mat-card-content>
+
+          <mat-card-actions>
+            @if (authService.isAuthenticated()) {
+              <button mat-raised-button color="primary" (click)="goToAccount()">
+                <mat-icon>account_circle</mat-icon>
+                Go to Account
+              </button>
+            } @else {
+              <button mat-raised-button color="primary" (click)="goHome()">
+                <mat-icon>home</mat-icon>
+                Go to Home
+              </button>
+            }
+          </mat-card-actions>
+        }
+
+        <!-- Error State -->
+        @case ('error') {
+          <mat-card-content class="state-content">
+            <div class="icon-container error">
+              <mat-icon>error</mat-icon>
+            </div>
+            <h2>Verification Failed</h2>
+            <p class="error-message">{{ errorMessage() }}</p>
+            <p class="help-text">
+              The verification link may have expired or is invalid.
+              Please try requesting a new verification email.
+            </p>
+          </mat-card-content>
+
+          <mat-card-actions>
+            @if (authService.isAuthenticated()) {
+              <button mat-raised-button color="primary" (click)="goToAccount()">
+                <mat-icon>account_circle</mat-icon>
+                Go to Account
+              </button>
+            } @else {
+              <button mat-raised-button color="primary" (click)="goToLogin()">
+                <mat-icon>login</mat-icon>
+                Go to Login
+              </button>
+            }
+          </mat-card-actions>
+        }
+
+        <!-- Invalid Token State -->
+        @case ('invalid') {
+          <mat-card-content class="state-content">
+            <div class="icon-container error">
+              <mat-icon>warning</mat-icon>
+            </div>
+            <h2>Invalid Link</h2>
+            <p class="error-message">{{ errorMessage() }}</p>
+            <p class="help-text">
+              The verification link appears to be invalid or incomplete.
+              Please check your email and try clicking the link again.
+            </p>
+          </mat-card-content>
+
+          <mat-card-actions>
+            <button mat-raised-button color="primary" (click)="goHome()">
+              <mat-icon>home</mat-icon>
+              Go to Home
+            </button>
+          </mat-card-actions>
+        }
+      }
+    </mat-card>
+
+    <!-- Additional Help -->
+    <div class="help-section">
+      <mat-icon>info</mat-icon>
+      <p>
+        Need help? Contact support or check your spam folder if you haven't received a verification email.
+      </p>
+    </div>
+  </div>
+</main>
+
+<app-footer></app-footer>
+

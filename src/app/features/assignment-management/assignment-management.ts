@@ -67,7 +67,7 @@ export class AssignmentManagement implements OnInit {
   private dialog = inject(MatDialog);
   private fb = inject(FormBuilder);
 
-  partyDetails: PartyDetails | null = null;
+  protected readonly partyDetails = signal<PartyDetails | null>(null);
 
   protected readonly assignments = signal<Assignment[]>([]);
   protected readonly myAssignment = signal<MyAssignment | null>(null);
@@ -86,7 +86,7 @@ export class AssignmentManagement implements OnInit {
    * Initialize with party details
    */
   setPartyDetails(partyDetails: PartyDetails): void {
-    this.partyDetails = partyDetails;
+    this.partyDetails.set(partyDetails);
     this.loadAssignments();
   }
 
@@ -94,12 +94,13 @@ export class AssignmentManagement implements OnInit {
    * Load assignments for the party
    */
   private async loadAssignments(): Promise<void> {
-    if (!this.partyDetails) return;
+    const currentParty = this.partyDetails();
+    if (!currentParty) return;
 
     this.loading.set(true);
 
     try {
-      const data = await this.secretSantaService.getAssignments(this.partyDetails.party.id);
+      const data = await this.secretSantaService.getAssignments(currentParty.party.id);
 
       this.assignmentsGenerated.set(data.generated ?? false);
 
@@ -134,10 +135,11 @@ export class AssignmentManagement implements OnInit {
    * Load exclusions
    */
   private async loadExclusions(): Promise<void> {
-    if (!this.partyDetails) return;
+    const currentParty = this.partyDetails();
+    if (!currentParty) return;
 
     try {
-      const data = await this.secretSantaService.getExclusions(this.partyDetails.party.id);
+      const data = await this.secretSantaService.getExclusions(currentParty.party.id);
       this.exclusions.set(data);
     } catch (error) {
       console.error('Error loading exclusions:', error);
@@ -148,7 +150,8 @@ export class AssignmentManagement implements OnInit {
    * Check if current user is the host
    */
   protected isHost(): boolean {
-    return this.partyDetails?.userParticipant?.is_host ?? false;
+    const currentParty = this.partyDetails();
+    return currentParty?.userParticipant?.is_host ?? false;
   }
 
   /**
@@ -169,14 +172,16 @@ export class AssignmentManagement implements OnInit {
    * Check if host can see all assignments
    */
   protected canSeeAllAssignments(): boolean {
-    return (this.partyDetails?.party.host_can_see_all ?? false) && this.isHost();
+    const currentParty = this.partyDetails();
+    return (currentParty?.party.host_can_see_all ?? false) && this.isHost();
   }
 
   /**
    * Generate assignments
    */
   protected async generateAssignments(): Promise<void> {
-    if (!this.partyDetails) return;
+    const currentParty = this.partyDetails();
+    if (!currentParty) return;
 
     // Show confirmation dialog
     const dialogRef = this.dialog.open(ConfirmDialog, {
@@ -197,7 +202,7 @@ export class AssignmentManagement implements OnInit {
 
     try {
       const result = await this.secretSantaService.generateAssignments(
-        this.partyDetails.party.id,
+        currentParty.party.id,
         {
           sendEmails: true,
           lockAfterGeneration: false
@@ -220,7 +225,8 @@ export class AssignmentManagement implements OnInit {
    * Delete assignments
    */
   protected async deleteAssignments(): Promise<void> {
-    if (!this.partyDetails) return;
+    const currentParty = this.partyDetails();
+    if (!currentParty) return;
 
     // Show confirmation dialog
     const dialogRef = this.dialog.open(ConfirmDialog, {
@@ -240,7 +246,7 @@ export class AssignmentManagement implements OnInit {
     this.deletingAssignments.set(true);
 
     try {
-      await this.secretSantaService.deleteAssignments(this.partyDetails.party.id);
+      await this.secretSantaService.deleteAssignments(currentParty.party.id);
 
       this.errorHandler.showSuccess('Assignments deleted successfully');
       this.assignmentsGenerated.set(false);

@@ -91,6 +91,7 @@ CREATE TABLE participants (
   INDEX idx_email (email),
   INDEX idx_is_host (is_host),
   INDEX idx_access_token (access_token),
+  INDEX idx_party_assigned (party_id, assigned_to),
   UNIQUE INDEX idx_party_email (party_id, email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -110,7 +111,73 @@ CREATE TABLE assignments (
   FOREIGN KEY (receiver_id) REFERENCES participants(id) ON DELETE CASCADE,
 
   UNIQUE INDEX idx_giver (party_id, giver_id),
+  INDEX idx_receiver (receiver_id),
+  INDEX idx_party_giver (party_id, giver_id),
+  INDEX idx_party_receiver (party_id, receiver_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- Table: participant_exclusions
+-- Stores custom exclusion rules (who cannot be paired with whom)
+-- ============================================
+CREATE TABLE participant_exclusions (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  party_id CHAR(36) NOT NULL,
+  participant_id BIGINT UNSIGNED NOT NULL,
+  excluded_participant_id BIGINT UNSIGNED NOT NULL,
+  reason VARCHAR(255) NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (party_id) REFERENCES parties(id) ON DELETE CASCADE,
+  FOREIGN KEY (participant_id) REFERENCES participants(id) ON DELETE CASCADE,
+  FOREIGN KEY (excluded_participant_id) REFERENCES participants(id) ON DELETE CASCADE,
+
+  UNIQUE KEY unique_exclusion (party_id, participant_id, excluded_participant_id),
+  INDEX idx_party_exclusions (party_id),
+  INDEX idx_participant (participant_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- Table: previous_assignments
+-- Stores historical assignments to avoid repeating same pairs
+-- ============================================
+CREATE TABLE previous_assignments (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  party_id CHAR(36) NOT NULL,
+  year INT NOT NULL,
+  giver_id BIGINT UNSIGNED NOT NULL,
+  receiver_id BIGINT UNSIGNED NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (party_id) REFERENCES parties(id) ON DELETE CASCADE,
+
+  UNIQUE KEY unique_previous_assignment (party_id, year, giver_id),
+  INDEX idx_party_year (party_id, year),
+  INDEX idx_giver (giver_id),
   INDEX idx_receiver (receiver_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- Table: assignment_metadata
+-- Tracks assignment generation metadata
+-- ============================================
+CREATE TABLE assignment_metadata (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  party_id CHAR(36) NOT NULL UNIQUE,
+  generation_attempts INT NOT NULL DEFAULT 0,
+  last_generated_at TIMESTAMP NULL,
+  generated_by BIGINT UNSIGNED NULL,
+  algorithm_used VARCHAR(50) DEFAULT 'cycle',
+  is_locked BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (party_id) REFERENCES parties(id) ON DELETE CASCADE,
+  FOREIGN KEY (generated_by) REFERENCES users(id) ON DELETE SET NULL,
+
+  INDEX idx_party (party_id),
+  INDEX idx_locked (is_locked),
+  INDEX idx_generated_at (last_generated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================

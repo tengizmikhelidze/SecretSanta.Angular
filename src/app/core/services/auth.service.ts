@@ -1,149 +1,187 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-
-export interface User {
-  id: number;
-  email: string;
-  fullName?: string;
-  avatarUrl?: string;
-  isEmailVerified: boolean;
-}
-
-export interface AuthResponse {
-  user: User;
-  token: string;
-}
+import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import type {
+  User,
+  AuthResponse,
+  ApiResponse,
+  RegisterRequest,
+  LoginRequest,
+  ChangePasswordRequest
+} from '../models/api.models';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private readonly API_URL = environment.apiUrl;
   private readonly TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'user_data';
+
+  private http = inject(HttpClient);
+  private router = inject(Router);
 
   private currentUser = signal<User | null>(this.loadUserFromStorage());
   private authToken = signal<string | null>(this.loadTokenFromStorage());
 
   public readonly user = this.currentUser.asReadonly();
   public readonly isAuthenticated = computed(() => !!this.currentUser());
-  public readonly isEmailVerified = computed(() => this.currentUser()?.isEmailVerified ?? false);
-
-  constructor(private router: Router) {}
+  public readonly isEmailVerified = computed(() => this.currentUser()?.is_email_verified ?? false);
 
   /**
    * Register with email and password
    */
-  async register(email: string, password: string, fullName?: string): Promise<AuthResponse> {
-    // TODO: Replace with actual HTTP call
-    await this.delay(1500);
+  async register(email: string, password: string, fullName?: string): Promise<User> {
+    const requestData: RegisterRequest = { email, password, fullName };
 
-    // Mock response
-    const mockUser: User = {
-      id: Date.now(),
-      email,
-      fullName: fullName || email.split('@')[0],
-      isEmailVerified: false
-    };
+    const response = await firstValueFrom(
+      this.http.post<AuthResponse>(`${this.API_URL}/auth/register`, requestData)
+    );
 
-    const mockToken = this.generateMockToken();
+    if (response.success && response.data) {
+      this.setAuth(response.data.user, response.data.token);
+      return response.data.user;
+    }
 
-    this.setAuth(mockUser, mockToken);
-
-    return { user: mockUser, token: mockToken };
+    throw new Error(response.message || 'Registration failed');
   }
 
   /**
    * Login with email and password
    */
-  async login(email: string, password: string): Promise<AuthResponse> {
-    // TODO: Replace with actual HTTP call
-    await this.delay(1500);
+  async login(email: string, password: string): Promise<User> {
+    const requestData: LoginRequest = { email, password };
 
-    // Mock response
-    const mockUser: User = {
-      id: Date.now(),
-      email,
-      fullName: email.split('@')[0],
-      isEmailVerified: true
-    };
+    const response = await firstValueFrom(
+      this.http.post<AuthResponse>(`${this.API_URL}/auth/login`, requestData)
+    );
 
-    const mockToken = this.generateMockToken();
+    if (response.success && response.data) {
+      this.setAuth(response.data.user, response.data.token);
+      return response.data.user;
+    }
 
-    this.setAuth(mockUser, mockToken);
-
-    return { user: mockUser, token: mockToken };
+    throw new Error(response.message || 'Login failed');
   }
 
   /**
    * Login with Google OAuth
    */
-  async loginWithGoogle(): Promise<AuthResponse> {
-    // TODO: Implement Google OAuth flow
-    await this.delay(1500);
+  async loginWithGoogle(): Promise<void> {
+    // Redirect to Google OAuth endpoint
+    window.location.href = `${this.API_URL}/auth/google`;
+  }
 
-    const mockUser: User = {
-      id: Date.now(),
-      email: 'google.user@gmail.com',
-      fullName: 'Google User',
-      avatarUrl: 'https://via.placeholder.com/150',
-      isEmailVerified: true
-    };
+  /**
+   * Handle OAuth callback (called from callback route)
+   */
+  async handleOAuthCallback(token: string): Promise<User> {
+    // Get user data with token
+    const response = await firstValueFrom(
+      this.http.get<ApiResponse<User>>(`${this.API_URL}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+    );
 
-    const mockToken = this.generateMockToken();
+    if (response.success && response.data) {
+      this.setAuth(response.data, token);
+      return response.data;
+    }
 
-    this.setAuth(mockUser, mockToken);
+    throw new Error('OAuth login failed');
+  }
 
-    return { user: mockUser, token: mockToken };
+  /**
+   * Get current user from backend
+   */
+  async getCurrentUser(): Promise<User> {
+    const response = await firstValueFrom(
+      this.http.get<ApiResponse<User>>(`${this.API_URL}/auth/me`)
+    );
+
+    if (response.success && response.data) {
+      this.currentUser.set(response.data);
+      this.saveUserToStorage(response.data);
+      return response.data;
+    }
+
+    throw new Error('Failed to get current user');
   }
 
   /**
    * Verify email with token
    */
   async verifyEmail(token: string): Promise<boolean> {
-    // TODO: Replace with actual HTTP call
-    await this.delay(1000);
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<any>>(`${this.API_URL}/auth/verify-email`, { token })
+    );
 
-    const user = this.currentUser();
-    if (user) {
-      const updatedUser = { ...user, isEmailVerified: true };
-      this.currentUser.set(updatedUser);
-      this.saveUserToStorage(updatedUser);
+    if (response.success) {
+      // Refresh user data
+      await this.getCurrentUser();
+      return true;
     }
 
-    return true;
+    throw new Error(response.message || 'Email verification failed');
+  }
+
+  /**
+   * Resend verification email
+   */
+  async resendVerificationEmail(): Promise<void> {
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<any>>(`${this.API_URL}/auth/resend-verification`, {})
+    );
+
+    if (!response.success) {
+      throw new Error(response.message || 'Failed to resend verification email');
+    }
   }
 
   /**
    * Change password
    */
   async changePassword(oldPassword: string, newPassword: string): Promise<void> {
-    // TODO: Replace with actual HTTP call
-    await this.delay(1000);
+    const requestData: ChangePasswordRequest = { oldPassword, newPassword };
 
-    if (!this.isAuthenticated()) {
-      throw new Error('Not authenticated');
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<any>>(`${this.API_URL}/auth/change-password`, requestData)
+    );
+
+    if (!response.success) {
+      throw new Error(response.message || 'Failed to change password');
     }
-
-    // Validate old password
-    console.log('Password changed successfully');
   }
 
   /**
    * Request password reset
    */
   async requestPasswordReset(email: string): Promise<void> {
-    // TODO: Replace with actual HTTP call
-    await this.delay(1000);
-    console.log('Password reset email sent to:', email);
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<any>>(`${this.API_URL}/auth/forgot-password`, { email })
+    );
+
+    if (!response.success) {
+      throw new Error(response.message || 'Failed to send password reset email');
+    }
   }
 
   /**
    * Reset password with token
    */
   async resetPassword(token: string, newPassword: string): Promise<void> {
-    // TODO: Replace with actual HTTP call
-    await this.delay(1000);
-    console.log('Password reset successfully');
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<any>>(`${this.API_URL}/auth/reset-password`, {
+        token,
+        newPassword
+      })
+    );
+
+    if (!response.success) {
+      throw new Error(response.message || 'Failed to reset password');
+    }
   }
 
   /**
@@ -165,7 +203,7 @@ export class AuthService {
   }
 
   /**
-   * Update user profile
+   * Update user profile locally
    */
   updateUser(updates: Partial<User>): void {
     const user = this.currentUser();
@@ -201,13 +239,6 @@ export class AuthService {
   private saveTokenToStorage(token: string): void {
     localStorage.setItem(this.TOKEN_KEY, token);
   }
-
-  private generateMockToken(): string {
-    return 'mock_token_' + Math.random().toString(36).substring(2) + Date.now();
-  }
-
-  private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
 }
+
 

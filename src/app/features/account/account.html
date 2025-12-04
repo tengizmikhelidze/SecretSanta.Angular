@@ -4,15 +4,15 @@
   <div class="account-container">
     <div class="account-header">
       <div class="user-info">
-        @if (user()?.avatarUrl) {
-          <img [src]="user()!.avatarUrl" alt="Avatar" class="avatar-img">
+        @if (user()?.avatar_url) {
+          <img [src]="user()!.avatar_url" alt="Avatar" class="avatar-img">
         } @else {
           <mat-icon class="avatar-icon">account_circle</mat-icon>
         }
         <div class="user-details">
-          <h1>{{ user()?.fullName || user()?.email }}</h1>
+          <h1>{{ user()?.full_name || user()?.email }}</h1>
           <p class="email">{{ user()?.email }}</p>
-          @if (!user()?.isEmailVerified) {
+          @if (!user()?.is_email_verified) {
             <span class="verification-badge">
               <mat-icon>warning</mat-icon>
               Email not verified

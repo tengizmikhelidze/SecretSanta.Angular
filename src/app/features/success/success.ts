@@ -11,9 +11,9 @@ import { SecretSantaService } from '../../core/services/secret-santa.service';
 
 interface PartyDetails {
   id: string;
-  partyDate?: string;
-  location?: string;
-  maxAmount?: number;
+  partyDate?: string | null;
+  location?: string | null;
+  maxAmount?: number | null;
   participants: Array<{ name: string; email: string; isHost: boolean }>;
   personalMessage: string;
   hostCanSeeAll: boolean;
@@ -52,18 +52,22 @@ export class Success implements OnInit {
     }
 
     try {
-      const party = await this.secretSantaService.getParty(partyId);
+      const partyData = await this.secretSantaService.getParty(partyId);
 
-      if (party) {
+      if (partyData && partyData.party) {
         this.partyDetails.set({
-          id: party.id,
-          partyDate: party.data.partyDate,
-          location: party.data.location,
-          maxAmount: party.data.maxAmount,
-          participants: party.data.participants,
-          personalMessage: party.data.personalMessage,
-          hostCanSeeAll: party.data.hostCanSeeAll,
-          createdAt: party.createdAt
+          id: partyData.party.id,
+          partyDate: partyData.party.party_date,
+          location: partyData.party.location,
+          maxAmount: partyData.party.max_amount,
+          participants: partyData.participants.map(p => ({
+            name: p.name,
+            email: p.email,
+            isHost: p.is_host
+          })),
+          personalMessage: partyData.party.personal_message || '',
+          hostCanSeeAll: partyData.party.host_can_see_all,
+          createdAt: partyData.party.created_at
         });
       } else {
         this.router.navigate(['/']);

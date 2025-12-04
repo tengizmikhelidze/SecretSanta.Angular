@@ -353,7 +353,7 @@ export class Generator implements OnInit, OnDestroy {
       });
 
       // Navigate to success page
-      this.router.navigate(['/success', result.id]);
+      this.router.navigate(['/success', result.party.id]);
 
     } catch (error) {
       const errorMessage = 'Failed to create party. Please try again.';

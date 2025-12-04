@@ -1,105 +1,259 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import type {
+  ApiResponse,
+  Party,
+  PartyDetails,
+  Participant,
+  CreatePartyRequest,
+  UpdatePartyRequest,
+  AccountData
+} from '../models/api.models';
 
-export interface Participant {
-  name: string;
-  email: string;
-  isHost: boolean;
-}
-
-export interface PartyData {
+export interface PartyFormData {
   partyDate?: string;
   location?: string;
   maxAmount?: number;
-  participants: Participant[];
+  participants: Array<{ name: string; email: string; isHost: boolean }>;
   personalMessage: string;
   hostCanSeeAll: boolean;
   termsAccepted: boolean;
-}
-
-export interface PartyResponse {
-  id: string;
-  status: 'created' | 'pending' | 'active';
-  createdAt: string;
-  data: PartyData;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class SecretSantaService {
-  private readonly parties = signal<Map<string, PartyResponse>>(new Map());
+  private readonly API_URL = environment.apiUrl;
+  private http = inject(HttpClient);
 
   /**
-   * Mock API call to create a Secret Santa party
-   * TODO: Replace with actual HTTP call when backend is ready
+   * Create a new party
    */
-  async createParty(partyData: PartyData): Promise<PartyResponse> {
-    // Simulate API delay
-    await this.delay(1500);
+  async createParty(formData: PartyFormData): Promise<PartyDetails> {
+    // Find host participant
+    const hostParticipant = formData.participants.find(p => p.isHost);
 
-    // Mock validation
-    if (partyData.participants.length < 4) {
-      throw new Error('Minimum 4 participants required');
+    if (!hostParticipant) {
+      throw new Error('Host participant not found');
     }
 
-    if (!partyData.termsAccepted) {
-      throw new Error('Terms must be accepted');
-    }
-
-    // Check for unique emails
-    const emails = partyData.participants.map(p => p.email);
-    const uniqueEmails = new Set(emails);
-    if (emails.length !== uniqueEmails.size) {
-      throw new Error('All participant emails must be unique');
-    }
-
-    // Generate mock response
-    const partyId = this.generateId();
-    const response: PartyResponse = {
-      id: partyId,
-      status: 'created',
-      createdAt: new Date().toISOString(),
-      data: partyData
+    const requestData: CreatePartyRequest = {
+      hostEmail: hostParticipant.email,
+      partyDate: formData.partyDate,
+      location: formData.location,
+      maxAmount: formData.maxAmount,
+      personalMessage: formData.personalMessage,
+      hostCanSeeAll: formData.hostCanSeeAll,
+      participants: formData.participants.map(p => ({
+        name: p.name,
+        email: p.email
+      }))
     };
 
-    // Store in mock database
-    const currentParties = this.parties();
-    currentParties.set(partyId, response);
-    this.parties.set(new Map(currentParties));
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<PartyDetails>>(`${this.API_URL}/parties`, requestData)
+    );
 
-    // Log for debugging
-    console.log('Mock API: Party created', response);
+    if (response.success && response.data) {
+      return response.data;
+    }
 
-    return response;
+    throw new Error(response.message || 'Failed to create party');
   }
 
   /**
-   * Mock API call to get party by ID
-   * TODO: Replace with actual HTTP call when backend is ready
+   * Get party by ID
    */
-  async getParty(partyId: string): Promise<PartyResponse | null> {
-    await this.delay(500);
+  async getParty(partyId: string): Promise<PartyDetails | null> {
+    try {
+      const response = await firstValueFrom(
+        this.http.get<ApiResponse<PartyDetails>>(`${this.API_URL}/parties/${partyId}`)
+      );
 
-    const party = this.parties().get(partyId);
-    return party || null;
+      if (response.success && response.data) {
+        return response.data;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error fetching party:', error);
+      return null;
+    }
   }
 
   /**
-   * Mock API call to get all parties
-   * TODO: Replace with actual HTTP call when backend is ready
+   * Get party by access token
    */
-  async getAllParties(): Promise<PartyResponse[]> {
-    await this.delay(500);
+  async getPartyByToken(accessToken: string): Promise<PartyDetails | null> {
+    try {
+      const response = await firstValueFrom(
+        this.http.get<ApiResponse<PartyDetails>>(
+          `${this.API_URL}/parties/by-token?token=${accessToken}`
+        )
+      );
 
-    return Array.from(this.parties().values());
+      if (response.success && response.data) {
+        return response.data;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error fetching party by token:', error);
+      return null;
+    }
   }
 
-  private generateId(): string {
-    return `party_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  /**
+   * Get all user's parties (for account page)
+   */
+  async getUserParties(): Promise<AccountData> {
+    const response = await firstValueFrom(
+      this.http.get<ApiResponse<AccountData>>(`${this.API_URL}/users/account`)
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || 'Failed to get user parties');
   }
 
-  private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+  /**
+   * Get parties where user is host
+   */
+  async getMyParties(): Promise<Party[]> {
+    const response = await firstValueFrom(
+      this.http.get<ApiResponse<Party[]>>(`${this.API_URL}/parties/my-parties`)
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || 'Failed to get hosted parties');
+  }
+
+  /**
+   * Update party
+   */
+  async updateParty(partyId: string, updateData: UpdatePartyRequest): Promise<Party> {
+    const response = await firstValueFrom(
+      this.http.put<ApiResponse<Party>>(
+        `${this.API_URL}/parties/${partyId}`,
+        updateData
+      )
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || 'Failed to update party');
+  }
+
+  /**
+   * Delete party
+   */
+  async deleteParty(partyId: string): Promise<void> {
+    const response = await firstValueFrom(
+      this.http.delete<ApiResponse<any>>(`${this.API_URL}/parties/${partyId}`)
+    );
+
+    if (!response.success) {
+      throw new Error(response.message || 'Failed to delete party');
+    }
+  }
+
+  /**
+   * Add participant to party
+   */
+  async addParticipant(partyId: string, name: string, email: string): Promise<Participant> {
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<Participant>>(
+        `${this.API_URL}/parties/${partyId}/participants`,
+        { name, email }
+      )
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || 'Failed to add participant');
+  }
+
+  /**
+   * Remove participant from party
+   */
+  async removeParticipant(partyId: string, participantId: number): Promise<void> {
+    const response = await firstValueFrom(
+      this.http.delete<ApiResponse<any>>(
+        `${this.API_URL}/parties/${partyId}/participants/${participantId}`
+      )
+    );
+
+    if (!response.success) {
+      throw new Error(response.message || 'Failed to remove participant');
+    }
+  }
+
+  /**
+   * Draw names (create Secret Santa assignments)
+   */
+  async drawNames(partyId: string): Promise<void> {
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<any>>(
+        `${this.API_URL}/parties/${partyId}/draw-names`,
+        {}
+      )
+    );
+
+    if (!response.success) {
+      throw new Error(response.message || 'Failed to draw names');
+    }
+  }
+
+  /**
+   * Update participant wishlist
+   */
+  async updateWishlist(participantId: number, wishlist: string, wishlistDescription?: string): Promise<Participant> {
+    const response = await firstValueFrom(
+      this.http.put<ApiResponse<Participant>>(
+        `${this.API_URL}/participants/${participantId}`,
+        { wishlist, wishlistDescription }
+      )
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || 'Failed to update wishlist');
+  }
+
+  /**
+   * Get participant by access token (for anonymous access)
+   */
+  async getParticipantByToken(accessToken: string): Promise<Participant | null> {
+    try {
+      const response = await firstValueFrom(
+        this.http.get<ApiResponse<Participant>>(
+          `${this.API_URL}/participants/by-token?token=${accessToken}`
+        )
+      );
+
+      if (response.success && response.data) {
+        return response.data;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error fetching participant by token:', error);
+      return null;
+    }
   }
 }
 

@@ -1,18 +1,19 @@
-import { Component, signal, computed, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatChipsModule } from '@angular/material/chips';
-import { Header } from '../../shared/header/header';
-import { Footer } from '../../shared/footer/footer';
-import { AuthService } from '../../core/services/auth.service';
+import {ChangeDetectionStrategy, Component, inject, OnInit, signal} from '@angular/core';
+import {Router, RouterLink} from '@angular/router';
+import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
+import {MatCardModule} from '@angular/material/card';
+import {MatButtonModule} from '@angular/material/button';
+import {MatIconModule} from '@angular/material/icon';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {MatTabsModule} from '@angular/material/tabs';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import {MatSnackBar} from '@angular/material/snack-bar';
+import {MatChipsModule} from '@angular/material/chips';
+import {Header} from '../../shared/header/header';
+import {Footer} from '../../shared/footer/footer';
+import {AuthService} from '../../core/services/auth.service';
+import {SecretSantaService} from '../../core/services/secret-santa.service';
 
 interface PartyListItem {
   id: string;
@@ -48,6 +49,7 @@ export class Account implements OnInit {
   private router = inject(Router);
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
+  private secretSantaService = inject(SecretSantaService);
   private snackBar = inject(MatSnackBar);
 
   protected readonly user = this.authService.user;
@@ -77,34 +79,39 @@ export class Account implements OnInit {
     this.isLoading.set(true);
 
     try {
-      // TODO: Replace with actual HTTP call
-      await this.delay(1000);
+      const accountData = await this.secretSantaService.getUserParties();
 
-      // Mock data
-      const mockParties: PartyListItem[] = [
-        {
-          id: '123e4567-e89b-12d3-a456-426614174000',
-          partyDate: '2025-12-25',
-          location: 'Office',
-          participantCount: 10,
-          status: 'active',
+      // Transform to PartyListItem format
+      const allParties: PartyListItem[] = [
+        ...accountData.hostedParties.map(party => ({
+          id: party.id,
+          partyDate: party.party_date || undefined,
+          location: party.location || undefined,
+          participantCount: 0, // Will be populated by backend in real implementation
+          status: party.status,
           isHost: true,
-          createdAt: '2025-12-01T10:00:00Z'
-        },
-        {
-          id: '223e4567-e89b-12d3-a456-426614174001',
-          partyDate: '2025-12-20',
-          location: 'Home',
-          participantCount: 5,
-          status: 'created',
+          createdAt: party.created_at
+        })),
+        ...accountData.participantParties.map(party => ({
+          id: party.id,
+          partyDate: party.party_date || undefined,
+          location: party.location || undefined,
+          participantCount: 0,
+          status: party.status,
           isHost: false,
-          createdAt: '2025-11-15T14:30:00Z'
-        }
+          createdAt: party.created_at
+        }))
       ];
 
-      this.parties.set(mockParties);
+      this.parties.set(allParties);
     } catch (error) {
       console.error('Error loading parties:', error);
+      this.snackBar.open('❌ Failed to load parties', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['error-snackbar']
+      });
     } finally {
       this.isLoading.set(false);
     }
@@ -113,7 +120,7 @@ export class Account implements OnInit {
   protected async onChangePassword(): Promise<void> {
     if (this.passwordForm.invalid || this.isLoading()) return;
 
-    const { newPassword, confirmPassword, oldPassword } = this.passwordForm.value;
+    const {newPassword, confirmPassword, oldPassword} = this.passwordForm.value;
 
     if (newPassword !== confirmPassword) {
       this.snackBar.open('❌ Passwords do not match', 'Close', {
@@ -160,7 +167,7 @@ export class Account implements OnInit {
 
   protected formatDate(dateString: string): string {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    return date.toLocaleDateString('en-US', {year: 'numeric', month: 'long', day: 'numeric'});
   }
 
   private delay(ms: number): Promise<void> {

@@ -65,8 +65,8 @@ export class AuthModal {
       });
 
       this.dialogRef.close({ success: true });
-    } catch (error) {
-      this.snackBar.open('❌ Login failed. Please check your credentials.', 'Close', {
+    } catch (error: any) {
+      this.snackBar.open(`❌ ${error.message || 'Login failed. Please check your credentials.'}`, 'Close', {
         duration: 5000,
         horizontalPosition: 'center',
         verticalPosition: 'bottom',
@@ -106,8 +106,8 @@ export class AuthModal {
       });
 
       this.dialogRef.close({ success: true });
-    } catch (error) {
-      this.snackBar.open('❌ Registration failed. Please try again.', 'Close', {
+    } catch (error: any) {
+      this.snackBar.open(`❌ ${error.message || 'Registration failed. Please try again.'}`, 'Close', {
         duration: 5000,
         horizontalPosition: 'center',
         verticalPosition: 'bottom',
@@ -125,23 +125,14 @@ export class AuthModal {
 
     try {
       await this.authService.loginWithGoogle();
-
-      this.snackBar.open('✅ Google login successful!', 'Close', {
-        duration: 3000,
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom',
-        panelClass: ['success-snackbar']
-      });
-
-      this.dialogRef.close({ success: true });
-    } catch (error) {
-      this.snackBar.open('❌ Google login failed. Please try again.', 'Close', {
+      // Will redirect to Google OAuth
+    } catch (error: any) {
+      this.snackBar.open(`❌ ${error.message || 'Google login failed. Please try again.'}`, 'Close', {
         duration: 5000,
         horizontalPosition: 'center',
         verticalPosition: 'bottom',
         panelClass: ['error-snackbar']
       });
-    } finally {
       this.isLoading.set(false);
     }
   }

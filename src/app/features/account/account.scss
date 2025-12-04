@@ -283,9 +283,17 @@ main {
     gap: var.$spacing-sm;
 
     button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var.$spacing-xs;
+
       mat-spinner {
-        display: inline-block;
-        margin-right: var.$spacing-xs;
+        margin: 0;
+      }
+
+      mat-icon {
+        margin: 0;
       }
     }
   }

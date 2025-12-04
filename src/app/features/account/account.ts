@@ -87,9 +87,8 @@ export class Account implements OnInit {
     try {
       const accountData = await this.secretSantaService.getUserParties();
 
-      // Transform to PartyListItem format and fetch participant counts
+      // Fetch full details for hosted parties
       const hostedPartiesPromises = accountData.hostedParties.map(async party => {
-        // Fetch full party details to get participant count
         const partyDetails = await this.secretSantaService.getParty(party.id);
 
         return {
@@ -103,8 +102,8 @@ export class Account implements OnInit {
         };
       });
 
+      // Fetch full details for participant parties
       const participantPartiesPromises = accountData.participantParties.map(async party => {
-        // Fetch full party details to get participant count
         const partyDetails = await this.secretSantaService.getParty(party.id);
 
         return {
@@ -124,7 +123,16 @@ export class Account implements OnInit {
         Promise.all(participantPartiesPromises)
       ]);
 
-      const allParties = [...hostedParties, ...participantParties];
+      // Remove duplicates: If user is both host and participant in same party,
+      // only show the host version (host has more privileges)
+      const hostedPartyIds = new Set(hostedParties.map(p => p.id));
+      const filteredParticipantParties = participantParties.filter(
+        party => !hostedPartyIds.has(party.id)
+      );
+
+      // Combine: hosted parties first, then participant parties
+      const allParties = [...hostedParties, ...filteredParticipantParties];
+
       this.parties.set(allParties);
     } catch (error) {
       console.error('Error loading parties:', error);

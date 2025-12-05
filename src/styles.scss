@@ -28,3 +28,12 @@ body {
 /* You can add global styles to this file, and also import other style files */
 
 html, body { height: 100%; }
+
+// Global button label styles for Material Design buttons
+.mdc-button__label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+

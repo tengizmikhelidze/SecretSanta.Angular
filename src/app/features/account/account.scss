@@ -22,37 +22,60 @@ main {
 
 .account-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var.$spacing-xl;
+  flex-direction: column;
+  align-items: stretch;
+  padding: var.$spacing-md;
   background: white;
-  border-radius: var.$border-radius-xl;
+  border-radius: var.$border-radius-lg;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  margin-bottom: var.$spacing-xl;
+  margin-bottom: var.$spacing-lg;
   gap: var.$spacing-md;
-  flex-wrap: wrap;
+
+  @include resp.tablet-up {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: var.$spacing-xl;
+    border-radius: var.$border-radius-xl;
+    margin-bottom: var.$spacing-xl;
+  }
 
   .user-info {
     display: flex;
     align-items: center;
-    gap: var.$spacing-lg;
+    gap: var.$spacing-md;
     flex: 1;
     min-width: 0;
 
+    @include resp.tablet-up {
+      gap: var.$spacing-lg;
+    }
+
     .avatar-icon {
-      font-size: 64px;
-      width: 64px;
-      height: 64px;
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
       color: var(--mat-sys-primary);
       flex-shrink: 0;
+
+      @include resp.tablet-up {
+        font-size: 64px;
+        width: 64px;
+        height: 64px;
+      }
     }
 
     .avatar-img {
-      width: 64px;
-      height: 64px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
       object-fit: cover;
       flex-shrink: 0;
+
+      @include resp.tablet-up {
+        width: 64px;
+        height: 64px;
+      }
     }
 
     .user-details {
@@ -153,10 +176,15 @@ main {
 }
 
 .tab-content {
-  padding: var.$spacing-xl;
+  padding: var.$spacing-md;
   background: white;
-  border-radius: 0 0 var.$border-radius-xl var.$border-radius-xl;
+  border-radius: 0 0 var.$border-radius-lg var.$border-radius-lg;
   min-height: 400px;
+
+  @include resp.tablet-up {
+    padding: var.$spacing-xl;
+    border-radius: 0 0 var.$border-radius-xl var.$border-radius-xl;
+  }
 }
 
 .loading-state {

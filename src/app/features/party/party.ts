@@ -50,6 +50,7 @@ export class Party implements OnInit {
   protected readonly loading = signal(true);
   protected readonly deleting = signal(false);
   protected readonly currentUser = this.authService.user;
+  protected readonly accessToken = signal<string | null>(null);
 
   async ngOnInit() {
     const partyId = this.route.snapshot.params['id'];
@@ -58,6 +59,11 @@ export class Party implements OnInit {
     if (!partyId) {
       this.router.navigate(['/']);
       return;
+    }
+
+    // Store the access token for later use
+    if (token) {
+      this.accessToken.set(token);
     }
 
     try {
@@ -74,10 +80,10 @@ export class Party implements OnInit {
       if (partyData) {
         this.partyDetails.set(partyData);
 
-        // Initialize assignment component with party details
+        // Initialize assignment component with party details and token
         setTimeout(() => {
           if (this.assignmentComponent) {
-            this.assignmentComponent.setPartyDetails(partyData);
+            this.assignmentComponent.setPartyDetails(partyData, token || null);
           }
         }, 0);
       } else {

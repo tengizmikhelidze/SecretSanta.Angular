@@ -389,4 +389,22 @@ export class SecretSantaService {
 
     throw new Error(response.message || 'Failed to get exclusions');
   }
+
+  /**
+   * Get assignments by access token (public, no JWT required)
+   * Used for email links where participant has access token but may not be logged in
+   */
+  async getAssignmentsByToken(partyId: string, accessToken: string): Promise<any> {
+    const response = await firstValueFrom(
+      this.http.get<ApiResponse<any>>(
+        `${this.API_URL}/parties/${partyId}/assignments/public?token=${accessToken}`
+      )
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || 'Failed to get assignments');
+  }
 }

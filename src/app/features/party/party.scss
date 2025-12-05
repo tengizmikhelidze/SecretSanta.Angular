@@ -30,7 +30,7 @@ main {
 }
 
 .party-container {
-  max-width: var.$container-md;
+  max-width: var.$container-lg;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -90,11 +90,16 @@ main {
 
   .message-section {
     display: flex;
-    gap: var.$spacing-md;
+    flex-direction: column;
+    gap: var.$spacing-sm;
     margin-top: var.$spacing-xl;
-    padding: var.$spacing-lg;
     background: #f9fafb;
     border-radius: var.$border-radius-lg;
+
+    @include resp.tablet-up {
+      flex-direction: row;
+      gap: var.$spacing-md;
+    }
 
     mat-icon {
       color: var(--mat-sys-primary);
@@ -103,17 +108,28 @@ main {
 
     .message-content {
       flex: 1;
+      word-break: break-word;
 
       strong {
         display: block;
         margin-bottom: var.$spacing-xs;
         color: #111827;
+        font-size: var.$font-size-sm;
+
+        @include resp.tablet-up {
+          font-size: var.$font-size-md;
+        }
       }
 
       p {
         margin: 0;
         color: #374151;
         line-height: 1.6;
+        font-size: var.$font-size-sm;
+
+        @include resp.tablet-up {
+          font-size: var.$font-size-md;
+        }
       }
     }
   }
@@ -133,38 +149,74 @@ main {
 
   .assignment-info {
     display: flex;
-    gap: var.$spacing-lg;
+    flex-direction: column;
+    gap: var.$spacing-md;
     align-items: center;
-    padding: var.$spacing-lg;
+    padding: var.$spacing-md;
     background: white;
     border-radius: var.$border-radius-lg;
     margin-top: var.$spacing-md;
+    text-align: center;
+
+    @include resp.tablet-up {
+      flex-direction: row;
+      gap: var.$spacing-lg;
+      padding: var.$spacing-lg;
+      text-align: left;
+    }
 
     .gift-icon {
-      font-size: 64px;
-      width: 64px;
-      height: 64px;
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
       color: var(--mat-sys-primary);
+      flex-shrink: 0;
+
+      @include resp.tablet-up {
+        font-size: 64px;
+        width: 64px;
+        height: 64px;
+      }
+    }
+
+    > div {
+      flex: 1;
+      min-width: 0;
     }
 
     h3 {
-      margin: 0 0 var.$spacing-sm 0;
+      margin: 0 0 var.$spacing-xs 0;
       color: #6b7280;
-      font-size: var.$font-size-sm;
+      font-size: var.$font-size-xs;
       font-weight: 500;
+
+      @include resp.tablet-up {
+        margin-bottom: var.$spacing-sm;
+        font-size: var.$font-size-sm;
+      }
     }
 
     .recipient-name {
       margin: 0;
-      font-size: var.$font-size-xl;
+      font-size: var.$font-size-lg;
       font-weight: 700;
       color: var(--mat-sys-primary);
+      word-break: break-word;
+
+      @include resp.tablet-up {
+        font-size: var.$font-size-xl;
+      }
     }
 
     .recipient-email {
       margin: var.$spacing-xs 0 0 0;
-      font-size: var.$font-size-sm;
+      font-size: var.$font-size-xs;
       color: #6b7280;
+      word-break: break-all;
+
+      @include resp.tablet-up {
+        font-size: var.$font-size-sm;
+      }
     }
   }
 
@@ -238,13 +290,19 @@ main {
     .participant-item {
       display: flex;
       align-items: center;
-      gap: var.$spacing-md;
+      gap: var.$spacing-sm;
       padding: var.$spacing-md;
       background: #f9fafb;
       border-radius: var.$border-radius-md;
 
+      @include resp.tablet-up {
+        gap: var.$spacing-md;
+        padding: var.$spacing-lg;
+      }
+
       mat-icon {
         color: var(--mat-sys-primary);
+        flex-shrink: 0;
       }
 
       .participant-info {
@@ -252,16 +310,31 @@ main {
         display: flex;
         flex-direction: column;
         gap: var.$spacing-xs;
+        min-width: 0;
 
         strong {
           color: #111827;
-          font-size: var.$font-size-md;
+          font-size: var.$font-size-sm;
+          word-break: break-word;
+
+          @include resp.tablet-up {
+            font-size: var.$font-size-md;
+          }
         }
 
         span {
           color: #6b7280;
-          font-size: var.$font-size-sm;
+          font-size: var.$font-size-xs;
+          word-break: break-all;
+
+          @include resp.tablet-up {
+            font-size: var.$font-size-sm;
+          }
         }
+      }
+
+      mat-chip {
+        flex-shrink: 0;
       }
     }
   }
@@ -269,16 +342,26 @@ main {
 
 .actions {
   display: flex;
-  justify-content: center;
-  gap: var.$spacing-md;
+  flex-direction: column;
+  gap: var.$spacing-sm;
   margin-top: var.$spacing-lg;
-  flex-wrap: wrap;
+
+  @include resp.tablet-up {
+    flex-direction: row;
+    justify-content: center;
+    gap: var.$spacing-md;
+  }
 
   button {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: var.$spacing-xs;
+    width: 100%;
+
+    @include resp.tablet-up {
+      width: auto;
+    }
 
     mat-spinner {
       margin: 0;

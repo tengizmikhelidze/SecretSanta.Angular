@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, inject, OnInit, ChangeDetectionStrategy, computed } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,10 +10,12 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 
 import { SecretSantaService } from '../../core/services/secret-santa.service';
 import { ErrorHandlerService } from '../../core/services/error-handler.service';
+import { AuthService } from '../../core/services/auth.service';
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 import type { PartyDetails } from '../../core/models/api.models';
 
@@ -55,6 +57,7 @@ interface MyAssignment {
     MatTabsModule,
     MatFormFieldModule,
     MatSelectModule,
+    MatTooltipModule,
     ReactiveFormsModule
   ],
   templateUrl: './assignment-management.html',
@@ -64,10 +67,13 @@ interface MyAssignment {
 export class AssignmentManagement implements OnInit {
   private secretSantaService = inject(SecretSantaService);
   private errorHandler = inject(ErrorHandlerService);
+  private authService = inject(AuthService);
   private dialog = inject(MatDialog);
   private fb = inject(FormBuilder);
 
   protected readonly partyDetails = signal<PartyDetails | null>(null);
+  protected readonly accessToken = signal<string | null>(null);
+  protected readonly isAuthenticated = computed(() => !!this.authService.user());
 
   protected readonly assignments = signal<Assignment[]>([]);
   protected readonly myAssignment = signal<MyAssignment | null>(null);
@@ -78,15 +84,19 @@ export class AssignmentManagement implements OnInit {
   protected readonly showExclusionManager = signal(false);
   protected readonly exclusions = signal<any[]>([]);
 
+  // Track which assignment rows are visible (for host with host_can_see_all)
+  protected readonly visibleAssignments = signal<Set<number>>(new Set());
+
   ngOnInit() {
     // This component receives party details via input or route
   }
 
   /**
-   * Initialize with party details
+   * Initialize with party details and optional access token
    */
-  setPartyDetails(partyDetails: PartyDetails): void {
+  setPartyDetails(partyDetails: PartyDetails, accessToken: string | null = null): void {
     this.partyDetails.set(partyDetails);
+    this.accessToken.set(accessToken);
     this.loadAssignments();
   }
 
@@ -100,11 +110,30 @@ export class AssignmentManagement implements OnInit {
     this.loading.set(true);
 
     try {
-      const data = await this.secretSantaService.getAssignments(currentParty.party.id);
+      let data: any = null;
+      const token = this.accessToken();
 
-      this.assignmentsGenerated.set(data.generated ?? false);
+      // If we have an access token and user is not authenticated, use public endpoint
+      if (token && !this.isAuthenticated()) {
+        try {
+          data = await this.secretSantaService.getAssignmentsByToken(currentParty.party.id, token);
+        } catch (publicError: any) {
+          // If public endpoint fails, we'll try to derive from party details below
+          console.warn('Public assignments endpoint not available:', publicError);
+        }
+      } else if (this.isAuthenticated()) {
+        // Use authenticated endpoint
+        try {
+          data = await this.secretSantaService.getAssignments(currentParty.party.id);
+        } catch (authError: any) {
+          console.warn('Authenticated assignments endpoint failed:', authError);
+        }
+      }
 
-      if (data.generated) {
+      // If we got data from the API, use it
+      if (data && data.generated) {
+        this.assignmentsGenerated.set(true);
+
         // If user is host and can see all
         if (data.assignments && Array.isArray(data.assignments)) {
           this.assignments.set(data.assignments);
@@ -114,10 +143,67 @@ export class AssignmentManagement implements OnInit {
         if (data.myAssignment) {
           this.myAssignment.set(data.myAssignment);
         }
+      } else {
+        // Fallback: Try to derive assignment from partyDetails
+        // This works when party was fetched via token and includes assignment data
+        const hasAssignmentsInParty = currentParty.assignments && currentParty.assignments.length > 0;
+        this.assignmentsGenerated.set(hasAssignmentsInParty);
+
+        if (hasAssignmentsInParty) {
+          // Always try to find and set the user's own assignment if they are a participant
+          if (currentParty.userParticipant) {
+            const userAssignment = currentParty.assignments.find(
+              a => a.giver_id === currentParty.userParticipant!.id
+            );
+
+            if (userAssignment) {
+              // Find the receiver participant
+              const receiver = currentParty.participants.find(
+                p => p.id === userAssignment.receiver_id
+              );
+
+              if (receiver) {
+                this.myAssignment.set({
+                  receiver: {
+                    id: receiver.id,
+                    name: receiver.name,
+                    email: receiver.email
+                  },
+                  wishlist: receiver.wishlist || undefined,
+                  wishlistDescription: receiver.wishlist_description || undefined
+                });
+                console.log('User assignment set from partyDetails:', this.myAssignment());
+              }
+            }
+          }
+
+          // If host can see all, populate the assignments list
+          if (this.canSeeAllAssignments()) {
+            const formattedAssignments = currentParty.assignments.map(assignment => {
+              const giver = currentParty.participants.find(p => p.id === assignment.giver_id);
+              const receiver = currentParty.participants.find(p => p.id === assignment.receiver_id);
+              return {
+                id: assignment.id,
+                giver: {
+                  id: giver?.id || 0,
+                  name: giver?.name || 'Unknown',
+                  email: giver?.email || ''
+                },
+                receiver: {
+                  id: receiver?.id || 0,
+                  name: receiver?.name || 'Unknown',
+                  email: receiver?.email || ''
+                },
+                createdAt: assignment.created_at
+              };
+            });
+            this.assignments.set(formattedAssignments);
+          }
+        }
       }
 
-      // Load exclusions if host
-      if (this.isHost()) {
+      // Load exclusions if host and authenticated
+      if (this.isHost() && this.isAuthenticated()) {
         await this.loadExclusions();
       }
     } catch (error) {
@@ -174,6 +260,27 @@ export class AssignmentManagement implements OnInit {
   protected canSeeAllAssignments(): boolean {
     const currentParty = this.partyDetails();
     return (currentParty?.party.host_can_see_all ?? false) && this.isHost();
+  }
+
+  /**
+   * Toggle visibility of a specific assignment
+   */
+  protected toggleAssignmentVisibility(assignmentId: number): void {
+    const current = this.visibleAssignments();
+    const newSet = new Set(current);
+    if (newSet.has(assignmentId)) {
+      newSet.delete(assignmentId);
+    } else {
+      newSet.add(assignmentId);
+    }
+    this.visibleAssignments.set(newSet);
+  }
+
+  /**
+   * Check if an assignment is visible
+   */
+  protected isAssignmentVisible(assignmentId: number): boolean {
+    return this.visibleAssignments().has(assignmentId);
   }
 
   /**

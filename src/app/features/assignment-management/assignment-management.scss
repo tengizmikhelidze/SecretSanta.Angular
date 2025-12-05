@@ -161,6 +161,32 @@
             margin-top: 2px;
           }
         }
+
+        &.hidden-assignment {
+          mat-icon {
+            color: #9ca3af;
+          }
+
+          .hidden-text {
+            color: #9ca3af;
+            font-style: italic;
+          }
+        }
+      }
+
+      .visibility-toggle {
+        flex-shrink: 0;
+        margin-left: auto;
+
+        mat-icon {
+          color: var(--mat-sys-primary);
+        }
+
+        &:hover {
+          mat-icon {
+            color: var(--mat-sys-tertiary);
+          }
+        }
       }
 
       .arrow {
@@ -186,6 +212,11 @@
         .arrow {
           transform: rotate(90deg);
           margin: var.$spacing-sm 0;
+        }
+
+        .visibility-toggle {
+          margin-left: 0;
+          margin-top: var.$spacing-sm;
         }
       }
     }

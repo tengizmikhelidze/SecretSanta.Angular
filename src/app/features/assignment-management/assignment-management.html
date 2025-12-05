@@ -48,7 +48,7 @@
         </mat-card>
       }
 
-      <!-- All Assignments Section (host only) -->
+      <!-- All Assignments Section (host only with permission) -->
       @if (canSeeAllAssignments()) {
         <mat-card class="all-assignments-card">
           <mat-card-header>
@@ -57,7 +57,7 @@
               All Assignments
             </mat-card-title>
             <mat-card-subtitle>
-              Secret Santa pairings for this party
+              Secret Santa pairings for this party (click eye icon to reveal each assignment)
             </mat-card-subtitle>
           </mat-card-header>
 
@@ -76,13 +76,29 @@
 
                     <mat-icon class="arrow">arrow_forward</mat-icon>
 
-                    <div class="receiver-info">
-                      <mat-icon>card_giftcard</mat-icon>
-                      <div>
-                        <strong>{{ assignment.receiver.name }}</strong>
-                        <span>{{ assignment.receiver.email }}</span>
-                      </div>
+                    <div class="receiver-info" [class.hidden-assignment]="!isAssignmentVisible(assignment.id)">
+                      @if (isAssignmentVisible(assignment.id)) {
+                        <mat-icon>card_giftcard</mat-icon>
+                        <div>
+                          <strong>{{ assignment.receiver.name }}</strong>
+                          <span>{{ assignment.receiver.email }}</span>
+                        </div>
+                      } @else {
+                        <mat-icon>help_outline</mat-icon>
+                        <div>
+                          <strong class="hidden-text">Hidden</strong>
+                          <span class="hidden-text">Click eye to reveal</span>
+                        </div>
+                      }
                     </div>
+
+                    <button
+                      mat-icon-button
+                      class="visibility-toggle"
+                      (click)="toggleAssignmentVisibility(assignment.id)"
+                      [matTooltip]="isAssignmentVisible(assignment.id) ? 'Hide assignment' : 'Show assignment'">
+                      <mat-icon>{{ isAssignmentVisible(assignment.id) ? 'visibility_off' : 'visibility' }}</mat-icon>
+                    </button>
                   </div>
                 }
               </div>
